@@ -1,6 +1,8 @@
-# Environment variables (NEVER commit these)
+# CORRECT — only ignores .env and specific variants
 .env
-.env.*
+.env.local
+.env.production
+.env.development
 
 # Virtual environment
 .venv/
