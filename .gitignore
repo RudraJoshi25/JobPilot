@@ -1,0 +1,29 @@
+# Environment variables (NEVER commit these)
+.env
+.env.*
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Generated artifacts (optional — commit if you want history)
+artifacts/
+data/jobs_raw.json
+data/jobs_clean.json
+logs/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Screenshots
+artifacts/screenshots/
+
+# OS files
+.DS_Store
+Thumbs.db

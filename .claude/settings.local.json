@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p core)",
+      "Bash(touch core/__init__.py)",
+      "PowerShell($start = Get-Date; python main.py --test; $end = Get-Date; $duration = $end - $start; Write-Host \"`n`n========== TIMING RESULTS ==========`nTotal execution time: $\\($duration.TotalSeconds\\) seconds`n====================================\")",
+      "PowerShell($start = Get-Date; python main.py --test; $end = Get-Date; $duration = $end - $start; Write-Host \"`n`n========== TIMING RESULTS ==========`nTotal execution time: $\\($duration.TotalSeconds\\) seconds`nTotal minutes: $\\($duration.TotalMinutes.ToString\\('F2'\\)\\) minutes`n====================================\")"
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "name": "Rudra Joshi",
+  "email": "rudrajoshi.cs@gmail.com",
+  "phone": "+61 466988797",
+  "location": "Sydney, New South Wales, Australia",
+  "linkedin": "linkedin.com/in/rudrajoshi25/",
+  "github": "github.com/RudraJoshi25",
+  "remote_preference": "Open to remote and hybrid opportunities",
+  "target_roles": [
+    "AI Engineer",
+    "GenAI Engineer",
+    "ML Engineer",
+    "Applied AI Engineer",
+    "Machine Learning Engineer",
+    "Graduate AI Developer",
+    "Junior AI Engineer",
+    "LLM Engineer",
+    "RAG Engineer"
+  ],
+  "preferred_seniority": ["Graduate", "Junior", "Entry-level"],
+  "education": [
+    {
+      "degree": "Master of Computer Science",
+      "institution": "University of Wollongong",
+      "location": "Wollongong, Australia",
+      "graduation_year": 2025,
+      "status": "Graduated",
+      "coursework": ["Data Mining", "Machine Translation", "Algorithms for Data Science", "Intro to Optimization"]
+    },
+    {
+      "degree": "Bachelor of Technology in Computer Science & Engineering (Data Science Specialization)",
+      "institution": "Gujarat State Fertilizers and Chemicals University",
+      "location": "Vadodara, India",
+      "status": "Graduated",
+      "coursework": ["Data Structures & Algorithms", "Machine Learning for Intelligent Systems", "Deep Learning", "NLP"]
+    }
+  ],
+  "skills": {
+    "programming_languages": ["Python", "SQL", "JavaScript", "TypeScript"],
+    "ml_ai": [
+      "Large Language Models (LLMs)",
+      "Retrieval-Augmented Generation (RAG)",
+      "Prompt Engineering",
+      "Embeddings",
+      "Vector Search",
+      "Hallucination Mitigation",
+      "Grounding",
+      "LangChain",
+      "LlamaIndex",
+      "scikit-learn",
+      "PyTorch",
+      "TensorFlow",
+      "Supervised Learning",
+      "Classification",
+      "Regression",
+      "Feature Engineering",
+      "Cross-validation",
+      "Hyperparameter Tuning",
+      "Class Imbalance Handling",
+      "Natural Language Processing",
+      "Sentence-Transformers",
+      "Hybrid Retrieval (BM25 + Vectors)"
+    ],
+    "llm_providers": ["OpenAI API", "Azure OpenAI", "Anthropic Claude", "Groq (Llama-3.3-70B)"],
+    "data_analytics": ["Pandas", "NumPy", "SQL Window Functions", "Cohort Analysis", "Funnel Analysis", "Segmentation", "Retention Analytics"],
+    "evaluation": ["ROC-AUC", "PR-AUC", "Precision/Recall/F1", "Calibration", "SHAP", "Feature Importance", "Interpretability"],
+    "cloud_platforms": ["Azure (AI Services, API Management)", "AWS (S3, API Gateway, Lambda)", "GCP (BigQuery)", "Redshift", "Databricks", "Snowflake"],
+    "development": ["FastAPI", "REST APIs", "Docker", "CI/CD", "Model Deployment", "Model Monitoring", "Node.js", "Express", "Next.js (React, TypeScript)", "Vercel", "Render"],
+    "databases": ["SQL", "MySQL"],
+    "fundamentals": ["Computer Science Fundamentals", "Algorithms", "Data Structures", "Problem Solving", "System Design"]
+  },
+  "projects": [
+    {
+      "name": "PersonaQuery",
+      "status": "Live",
+      "type": "Production-ready AI Application (Customer-style PoC)",
+      "highlights": [
+        "Applied product-style requirements discovery (use cases + success metrics) and iterated UX to enable fast stakeholder reviews — mirroring a PoC validation process",
+        "Implemented an evaluation harness with a golden set (expected answers + citations) to regression-test retrieval quality across prompt and retrieval changes",
+        "Added guardrails (schema validation + citation-required responses) and production hardening (error handling, logging, rate-limit aware usage) to improve reliability",
+        "Shipped as a PoC-to-production service with CORS-safe integration; deployment trade-offs (latency/cost) measured via p95 timings"
+      ],
+      "tech": ["LangChain", "LlamaIndex", "Groq (Llama-3.3-70B)", "Sentence-Transformers (all-MiniLM-L6-v2)", "Hybrid Retrieval (BM25 + Vectors)", "FastAPI", "Uvicorn", "Render", "Vercel"]
+    },
+    {
+      "name": "HealthEcho",
+      "status": "Live",
+      "type": "Production ML System with Monitoring",
+      "highlights": [
+        "Built an end-to-end anomaly detection pipeline across structured health signal data (time-series metrics) and unstructured log inputs",
+        "Threshold tuning reduced false positive alert rate by approximately 40%, covering preprocessing, feature extraction, scoring, and alert rule execution",
+        "Deployed batch scoring and inference API with REST endpoints and validation; integrated alerting workflow and structured observability logs for debugging and monitoring"
+      ],
+      "tech": ["Python", "FastAPI", "Next.js", "React", "TypeScript", "Node.js", "Express", "SQL", "Vercel"]
+    }
+  ],
+  "publications_patents": [
+    {
+      "type": "Patent",
+      "issuer": "Indian Government",
+      "title": "Intelligent Face Recognition System Using Deep Recurrent Neural Network",
+      "application_number": "202211058943 A"
+    },
+    {
+      "type": "Publication",
+      "title": "Cognitive-Chair: AI based advanced Brain Sensing Wheelchair for Paraplegic/Quadriplegic people",
+      "conference": "AIST 2022",
+      "award": "Best Paper Award",
+      "published": "IEEE Xplore 2023",
+      "authors": "R. Joshi, A. Vyas, et al."
+    }
+  ],
+  "work_experience": [
+    {
+      "company": "TSPL",
+      "role": "Junior Android Application Development Intern",
+      "location": "Vadodara, India",
+      "start": "Jan 2023",
+      "end": "Jun 2023",
+      "highlights": [
+        "Built an Android app end-to-end with backend REST APIs; integrated charts for analytics views",
+        "Delivered features across UI to API to DB with clean endpoint design and predictable payload contracts"
+      ],
+      "tech": ["Java", "Spring Boot", "MySQL"]
+    },
+    {
+      "company": "Gurukula, Tntra Engineering",
+      "role": "Multi Domain Intern",
+      "location": "Vadodara, India",
+      "start": "Sep 2022",
+      "end": "Dec 2022",
+      "highlights": [
+        "Completed multi-domain engineering training and team project delivery under senior developer guidance across web development, cloud, and cybersecurity"
+      ],
+      "tech": ["Web Development", "Cloud", "Cybersecurity"]
+    },
+    {
+      "company": "Gurukula, Tntra Engineering",
+      "role": "Full Stack Intern (Summer Intern)",
+      "location": "Vadodara, India",
+      "start": "Jun 2022",
+      "end": "Jul 2022",
+      "highlights": [
+        "Built and shipped small web app modules in an industry workflow including tickets, reviews, and iterative delivery"
+      ],
+      "tech": ["Full Stack Web Development"]
+    }
+  ],
+  "key_strengths": [
+    "Production AI systems with live deployment (PersonaQuery, HealthEcho)",
+    "End-to-end RAG pipeline development with evaluation harnesses",
+    "Multi-LLM provider experience (OpenAI, Azure OpenAI, Anthropic Claude, Groq)",
+    "FastAPI and REST API development",
+    "ML model evaluation, monitoring, and production hardening",
+    "Published researcher with Best Paper Award at IEEE conference",
+    "Indian Government patent holder in deep learning"
+  ],
+  "experience_level": "Graduate/Entry-level",
+  "visa_status": "International student — check role for sponsorship requirements",
+  "constraints": {
+    "no_fabrication": true,
+    "honest_representation": true,
+    "only_use_profile_data": true
+  }
+}

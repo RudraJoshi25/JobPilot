@@ -1,0 +1,90 @@
+[
+  {
+    "job": {
+      "job_hash": "c2b7f7df1b50d2ae99eb75977dcba0bc",
+      "title": "Graduate AI Engineer",
+      "company": "Earth AI",
+      "location": "Sydney NSW",
+      "salary_min": null,
+      "salary_max": null,
+      "employment_type": "graduate",
+      "seniority_level": "graduate",
+      "apply_type": "portal",
+      "required_skills": [],
+      "nice_to_have_skills": [],
+      "responsibilities": [],
+      "visa_sponsorship": null,
+      "remote_friendly": false,
+      "jd_word_count": 6,
+      "source": "seek",
+      "url": "https://www.seek.com.au/job/91913420?type=promoted&ref=search-standalone&origin=cardTitle#sol=21b4fe5db1ded2e483ef483f0c93a1b647fc5ee2",
+      "raw_description": "Graduate AI Engineer at Earth AI",
+      "normalized_at": "2026-05-11T07:15:27.694988"
+    },
+    "match": {
+      "score": 92.0,
+      "verdict": "apply",
+      "matching_skills": [
+        "Python",
+        "Machine Learning",
+        "Deep Learning (PyTorch, TensorFlow)",
+        "Natural Language Processing",
+        "Large Language Models (LLMs)",
+        "Data Analysis and Feature Engineering",
+        "SQL",
+        "Cloud Platforms (AWS, GCP, Azure)",
+        "Model Evaluation and Metrics",
+        "API Development (FastAPI, REST APIs)",
+        "Docker and Deployment",
+        "Problem Solving and Algorithms",
+        "Computer Science Fundamentals",
+        "Data Structures",
+        "Research and Academic Experience"
+      ],
+      "missing_skills": [
+        "Earth AI domain-specific knowledge (geospatial AI, climate modeling, or satellite data processing - if applicable to role)",
+        "Specific Earth science or environmental domain expertise"
+      ],
+      "reasons": "This is an exceptional match for a Graduate AI Engineer role. Rudra is an ideal candidate for this position: (1) Perfect seniority alignment - he is a recent Master's graduate targeting entry-level AI roles, which matches the graduate-level position exactly; (2) Comprehensive technical foundation - he demonstrates expertise across the full ML/AI stack including Python, PyTorch, TensorFlow, and modern ML practices; (3) Production experience - he has deployed two production AI systems (PersonaQuery, HealthEcho) with live deployments, which is impressive for an entry-level candidate and demonstrates practical engineering skills beyond theory; (4) Advanced AI/ML capabilities - proficiency in LLMs, RAG systems, prompt engineering, and multiple LLM providers (OpenAI, Azure, Anthropic, Groq) shows he's current with cutting-edge generative AI; (5) Full-stack competency - end-to-end capability from data handling (SQL, Pandas, NumPy) through model development to deployment (FastAPI, Docker, cloud platforms); (6) Academic credibility - Master's degree from a recognized institution, published researcher with IEEE Best Paper Award, and patent holder demonstrates intellectual rigor; (7) Location and flexibility - based in Sydney, NSW matching the job location, and open to remote/hybrid. The only minor gap is lack of domain-specific Earth AI expertise (geospatial, climate, satellite data), but this is typically not expected for graduate-level hires and can be learned on the job. His strong fundamentals and proven ability to learn complex systems quickly make this very manageable.",
+      "company_research": {
+        "company": "Earth AI",
+        "size": "Unknown",
+        "industry": "Unknown",
+        "tech_stack": [],
+        "culture_notes": "",
+        "recent_news": [],
+        "researched_at": "2026-05-11T07:15:52.351891"
+      },
+      "salary_benchmark": {
+        "role": "Graduate AI Engineer",
+        "location": "Sydney NSW",
+        "min_salary": 80000,
+        "max_salary": 120000,
+        "median_salary": 100000,
+        "source": "Estimated (no data found)",
+        "sample_size": 0,
+        "cached_at": "2026-05-10T11:05:48.729137"
+      }
+    },
+    "resume": {
+      "tex": "artifacts\\resumes\\resume_c2b7f7df1b50d2ae99eb75977dcba0bc.tex",
+      "changelog": "artifacts\\resumes\\resume_c2b7f7df1b50d2ae99eb75977dcba0bc_changelog.txt",
+      "diff": "artifacts\\resumes\\resume_c2b7f7df1b50d2ae99eb75977dcba0bc_diff.txt",
+      "pdf": null
+    },
+    "cover_letter": {
+      "markdown": "artifacts\\cover_letters\\cover_letter_c2b7f7df1b50d2ae99eb75977dcba0bc.md",
+      "docx": "artifacts\\cover_letters\\cover_letter_c2b7f7df1b50d2ae99eb75977dcba0bc.docx"
+    },
+    "qa_status": "passed",
+    "qa_report": {
+      "passed": true,
+      "checks_run": 14,
+      "checks_passed": 14,
+      "issues": [],
+      "auto_fixable": [],
+      "recommendation": "approve"
+    },
+    "cover_letter_quality_score": 10
+  }
+]

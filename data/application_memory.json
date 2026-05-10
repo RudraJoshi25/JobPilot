@@ -1,0 +1,19 @@
+{
+  "applications": [
+    {
+      "job_hash": "c2b7f7df1b50d2ae99eb75977dcba0bc",
+      "company": "Earth AI",
+      "role": "Graduate AI Engineer",
+      "outcome": "applied",
+      "score": 92.0,
+      "applied_at": "2026-05-11T07:25:31.142843",
+      "responded_at": null,
+      "notes": ""
+    }
+  ],
+  "stats": {
+    "total_applied": 1,
+    "total_responses": 0,
+    "response_rate": 0.0
+  }
+}

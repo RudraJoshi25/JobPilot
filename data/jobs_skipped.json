@@ -1,0 +1,41 @@
+[
+  {
+    "title": "AI Engineer",
+    "company": "Tata Consultancy Services",
+    "location": "Sydney NSW",
+    "url": "https://au.indeed.com/rc/clk?jk=61a0081ae38688b3&bb=vOajOPJrIqzwJAuzpvmty7tJ9Q5OLgRcvDNi44OB3v6s9eU1bP_BvZJaTGv2w-Ani4prsxWXyUtlB_jLj9w34C7ovx79a0iqbYvMs0_4W-sfYZ7qDF_7LgHc2aYhWeKXgfv8cvorQg-nhJ6ukGtwsA%3D%3D&xkcb=SoDq67M3jHg__Myl5Z0LbzkdCdPP&fccid=d9b9208177142548&vjs=3",
+    "short_description": "",
+    "salary": null,
+    "posted_date": null,
+    "scraped_at": "2026-05-10T10:25:11.328785",
+    "source": "indeed",
+    "skip_reason": "Failed to normalize: RetryError[<Future at 0x1c0d0ea34d0 state=finished raised TypeError>]",
+    "skipped_at": "2026-05-10T10:26:17.650446"
+  },
+  {
+    "title": "Graduate AI Engineer",
+    "company": "Unknown Company",
+    "location": "Sydney NSW",
+    "url": "https://www.seek.com.au/job/91913420?type=promoted&ref=search-standalone&origin=cardTitle#sol=f14f87757a6f1d2417b0cf3fdf204500e10e0ecc",
+    "short_description": "",
+    "salary": null,
+    "posted_date": null,
+    "scraped_at": "2026-05-10T10:25:35.729707",
+    "source": "seek",
+    "skip_reason": "Failed to normalize: RetryError[<Future at 0x1c0d0ee44d0 state=finished raised TypeError>]",
+    "skipped_at": "2026-05-10T10:26:37.946366"
+  },
+  {
+    "title": "Software Engineer",
+    "company": "Unknown Company",
+    "location": "Sydney NSW",
+    "url": "https://www.seek.com.au/job/91959303?type=promoted&ref=search-standalone&origin=cardTitle#sol=2cdab12df432559fe52f83a343b4dddd78b7683b",
+    "short_description": "",
+    "salary": null,
+    "posted_date": null,
+    "scraped_at": "2026-05-10T10:25:38.309852",
+    "source": "seek",
+    "skip_reason": "Failed to normalize: RetryError[<Future at 0x1c0d0febd50 state=finished raised TypeError>]",
+    "skipped_at": "2026-05-10T10:26:58.561947"
+  }
+]

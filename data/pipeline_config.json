@@ -1,0 +1,17 @@
+{
+  "search_terms": [
+    "AI Engineer",
+    "Machine Learning Engineer",
+    "GenAI Engineer",
+    "Graduate AI Developer",
+    "Applied AI Engineer"
+  ],
+  "location": "Sydney NSW",
+  "score_threshold_apply": 75,
+  "score_threshold_maybe": 60,
+  "max_jobs_per_source": 15,
+  "apply_mode": "assisted",
+  "daily_application_limit": 10,
+  "auto_apply_only_easy_apply": true,
+  "visit_job_pages": false
+}

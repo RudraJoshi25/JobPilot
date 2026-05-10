@@ -1,0 +1,273 @@
+%-------------------------
+% Resume in Latex
+% Author : Jake Gutierrez
+% Based off of: https://github.com/sb2nov/resume
+% License : MIT
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\newcommand\tab[1][2.5cm]{\hspace*{#1}}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+
+%----------FONT OPTIONS----------
+\usepackage{charter}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.6in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1.19in}
+\addtolength{\topmargin}{-0.85in}
+\addtolength{\textheight}{1.7in}
+\addtolength{\footskip}{-0.2in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {\small #1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textbf{\textit{\small#3}} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\huge \scshape Rudra Joshi} \\ \vspace{2pt}
+    \small AI / ML Engineer (GenAI $\cdot$ RAG $\cdot$ LLMs $\cdot$ FastAPI) \\ \vspace{4pt}
+    \small \raisebox{-0.1\height}\faPhone\ +61 466988797 ~
+    \href{mailto:rudrajoshi.cs@gmail.com}{\raisebox{-0.2\height}\faEnvelope\ rudrajoshi.cs@gmail.com} ~
+    Sydney, New South Wales, Australia ~
+    \href{https://www.linkedin.com/in/rudrajoshi25/}{\raisebox{-0.2\height}\faLinkedin\ linkedin.com/in/rudrajoshi25/} ~
+    \href{https://github.com/RudraJoshi25}{\raisebox{-0.2\height}\faGithub\ github.com/RudraJoshi25}
+    \vspace{-8pt}
+\end{center}
+
+\vspace{-16pt}
+
+% %-----------SUMMARY-----------
+% \section{Summary}
+% \begin{itemize}[leftmargin=0.15in, label={}]
+%   \small{\item{
+%     AI/ML engineer with hands-on experience building and deploying production RAG pipelines, LLM-powered APIs, and ML anomaly detection systems. Skilled in LangChain, FastAPI, Python, and cloud deployment. Holds an MCS from the University of Wollongong and brings a research background including an IEEE Best Paper Award and a government-filed patent. Seeking AI/ML or GenAI engineering roles where I can contribute to real-world systems from day one.
+%   }}
+% \end{itemize}
+
+% \vspace{-20pt}
+
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+\begin{itemize}[leftmargin=0.15in, label={}]
+     \small{\item{
+    \textbf{Programming}{: Python, SQL, JavaScript, TypeScript} \\
+    \textbf{Data \& Analytics}{: Pandas, NumPy, SQL window functions, cohort/funnel analysis, segmentation, retention analytics} \\
+    \textbf{ML Modeling}{: scikit-learn, supervised learning, PyTorch, TensorFlow, classification/regression, feature engineering, cross-validation, hyperparameter tuning, class imbalance handling} \\
+    \textbf{Evaluation}{: ROC-AUC, PR-AUC, precision/recall/F1, calibration, interpretability (SHAP/feature importance)} \\
+   \textbf{Cloud \& Platforms}{: Azure (AI Services, API Management \textit{-- actively upskilling}), AWS (S3, API Gateway, Lambda), GCP (BigQuery), Redshift, Databricks, Snowflake} \\
+   \textbf{GenAI}{: LLMs (OpenAI API, Azure OpenAI, Anthropic Claude, Groq), prompt engineering, RAG, embeddings, vector search, grounding/hallucination mitigation, LangChain/LlamaIndex} \\
+    \textbf{MLOps}{: Docker, CI/CD, Git, model deployment/monitoring}
+  }}
+\end{itemize}
+
+\vspace{-20pt}
+
+
+%-----------PROJECTS-----------------
+\section{Key Projects}
+\vspace{-1pt}
+\begin{itemize}[leftmargin=0.0in, label={}]
+
+\item \small \textbf{PersonaQuery} \href{https://personaquery.vercel.app/}{\small [Live]} \hfill \small \textbf{Customer-style PoC - Production-ready AI Application}
+\vspace{-9pt}
+\begin{itemize}[leftmargin=0.4cm]
+% \item \small Built an end-to-end \textbf{anomaly detection pipeline} across \textbf{structured health signal data} (time-series metrics) and \textbf{unstructured log inputs}; threshold tuning reduced false positive alert rate by approx. 40\%, covering preprocessing, feature extraction, scoring, and alert rule execution (Python, FastAPI).
+\vspace{-3.5pt}
+\item \small Applied \textbf{product-style requirements discovery} (use cases + success metrics) and iterated UX to enable fast stakeholder reviews --- mirroring a PoC validation process.
+\item \small Implemented an \textbf{evaluation harness} with a small \textbf{golden set} (expected answers + citations) to regression-test retrieval quality across prompt/retrieval changes.
+\vspace{-3.5pt}
+\item \small Added {guardrails} (schema validation + citation-required responses) and production hardening ({error handling, logging,} rate-limit aware usage); designed as {modular components} (retrieval, reranking, generation) with clean service boundaries to improve reliability and maintainability.
+\vspace{-3.5pt}
+\item \small Shipped as a \textbf{PoC-to-production service} with CORS-safe integration and deployment trade-offs (latency/cost) measured via p95 timings.
+\vspace{-3.5pt}
+\item \small \textbf{Tech:} LangChain/LlamaIndex, Groq (Llama-3.3-70B), Sentence-Transformers (all-MiniLM-L6-v2), Hybrid retrieval (BM25 + vectors), FastAPI/Uvicorn, Render + Vercel.
+\vspace{-3.5pt}
+\end{itemize}
+\vspace{-10pt}
+
+\item \small \textbf{HealthEcho} \href{https://healthecho.vercel.app/}{\small [Live]} \hfill \small \textbf{Production ML System, Monitoring, FastAPI}
+\vspace{-9pt}
+\begin{itemize}[leftmargin=0.4cm]
+\item \small Built an end-to-end {anomaly detection pipeline} handling {inconsistent and incomplete sensor inputs} across structured health signal data (time-series metrics) and unstructured log inputs; threshold tuning reduced false positive alert rate by approx. 40\%, covering preprocessing, feature extraction, scoring, and alert rule execution (Python, FastAPI).
+\vspace{-3.5pt}
+% \item \small Evaluated detector quality using \textbf{precision/recall} and tuned thresholds to control \textbf{false positives}; added logging to track alert volume and error cases over time.
+% \vspace{-3.5pt}
+\item \small Deployed \textbf{batch scoring + inference API} with REST endpoints and validation; integrated alerting workflow and structured observability logs for debugging and monitoring.
+\vspace{-3.5pt}
+\item \small \textbf{Tech:} Next.js (React, TypeScript), Node.js/Express, FastAPI, SQL, deployment on Vercel; env vars + CORS-safe API integration.
+\vspace{-3.5pt}
+\end{itemize}
+\vspace{-10pt}
+
+\item \small \textbf{AI Job Scout} \hfill \small \textbf{Multi-Agent System, MCP, Agentic Scraping}
+\vspace{-9pt}
+\begin{itemize}[leftmargin=0.4cm]
+\item \small Built a \textbf{multi-agent pipeline} using MCP to autonomously scrape, filter, and rank job listings based on relevance to a target profile --- coordinating agents across search, extraction, and scoring stages.
+\vspace{-3.5pt}
+\item \small Designed agent communication with \textbf{clean task boundaries} (search agent, parser agent, ranking agent) to enable modular iteration and reduce inter-agent coupling.
+\vspace{-3.5pt}
+\item \small \textbf{Tech:} MCP, multi-agent orchestration, Python, web scraping, FastAPI.
+\vspace{-3.5pt}
+\end{itemize}
+\vspace{-10pt}
+
+\end{itemize}
+
+\vspace{-14pt}
+
+%-----------PUBLICATIONS------------
+\section{Publications \& Patents}
+\vspace{-2pt}
+\begin{itemize}[leftmargin=0.3cm]
+\small{
+    \item \textbf{Patent} --- Indian Government: \textit{Intelligent Face Recognition System Using Deep Recurrent Neural Network} (Application No. 202211058943 A)
+    \vspace{-6pt}
+
+\item R. Joshi, A. Vyas, et al., \textbf{``Cognitive-Chair: AI based advanced Brain Sensing Wheelchair for Paraplegic/Quadriplegic people,''} AIST 2022 \textbf{[Best Paper Award]}, IEEE Xplore 2023 \href{https://ieeexplore.ieee.org/abstract/document/10065338}{[Link to Paper]}
+    \vspace{-7pt}
+}
+\end{itemize}
+
+\vspace{-14pt}
+%-----------EXPERIENCE-----------
+\section{Work Experience}
+\vspace{-1pt}
+\resumeSubHeadingListStart
+
+\resumeSubheading
+{TSPL}{Jan 2023 -- Jun 2023}
+{\textbf{Junior Android Application Development Intern}}{Vadodara, India}
+\begin{itemize}[leftmargin=*]
+\vspace{-1pt}
+\item \small Built an Android app end-to-end with backend REST APIs; integrated charts for analytics views. (Java/Spring Boot, MySQL)
+\vspace{-4pt}
+\item \small Delivered features across UI $\leftrightarrow$ API $\leftrightarrow$ DB with clean endpoint design and predictable payload contracts.
+\vspace{-4pt}
+\end{itemize}
+\vspace{-6pt}
+
+\resumeSubheading
+{Gurukula, Tntra Engineering}{Sep 2022 -- Dec 2022}
+{\textbf{Multi Domain Intern}}{Vadodara, India}
+\begin{itemize}[leftmargin=*]
+\vspace{-1pt}
+\item \small Completed multi-domain engineering training + team project delivery under senior developer guidance (web dev / cloud / cyber).
+\vspace{-4pt}
+\end{itemize}
+\vspace{-6pt}
+
+\resumeSubheading
+{Gurukula, Tntra Engineering}{Jun 2022 -- Jul 2022}
+{\textbf{Full Stack Intern (Summer Intern)}}{Vadodara, India}
+\begin{itemize}[leftmargin=*]
+\vspace{-1pt}
+\item \small Built and shipped small web app modules in an industry workflow (tickets, reviews, iterative delivery).
+\vspace{-4pt}
+\end{itemize}
+\vspace{-5pt}
+
+\resumeSubHeadingListEnd
+
+\vspace{-23pt}
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {University of Wollongong}{Wollongong, Australia}
+      {Master of Computer Science}{}
+     \vspace{-9pt}
+    \begin{itemize}[leftmargin=0.1in, label={}]
+        \item {\textbf{Coursework}: Data Mining, Machine Translation, Algorithms for Data Science, Intro to Optimization.}
+    \end{itemize}
+    \vspace{-9pt}
+    \resumeSubheading
+      {Gujarat State Fertilizers and Chemicals University}{Vadodara, India}
+      {Bachelor of Technology in Computer Science \& Engineering with Specialization in Data Science}{}
+    \vspace{-9pt}
+    \begin{itemize}[leftmargin=0.1in, label={}]
+        \item{\textbf{Coursework}: Data Structures \& Algorithms, Machine Learning for Intelligent Systems, Deep Learning, NLP.}
+    \end{itemize}
+    \vspace{-1pt}
+  \resumeSubHeadingListEnd
+\vspace{-20pt}
+
+%-----------PUBLICATIONS------------
+% \section{Publications}
+% \vspace{-2pt}
+% \begin{itemize}[leftmargin=0.3cm]
+% \small{
+%     \item \textbf{Patent} --- Indian Government: \textit{Intelligent Face Recognition System Using Deep Recurrent Neural Network} (Application No. 202211058943 A)
+%     \vspace{-6pt}
+
+%     \item R. Joshi, A. Vyas, et al., \textbf{``Cognitive-Chair: AI based advanced Brain Sensing Wheelchair for Paraplegic/Quadriplegic people,''} ``AIST 2022 \textbf{[Won the Best paper award],''} IEEE Xplore Publication 2023 \href{https://ieeexplore.ieee.org/abstract/document/10065338}{[Link to Paper]}
+%     \vspace{-7pt}
+% }
+% \end{itemize}
+
+\end{document}
