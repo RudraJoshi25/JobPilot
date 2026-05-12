@@ -32,7 +32,8 @@ class ApplyAgent:
         self,
         job: Dict[str, Any],
         resume_path: str,
-        cover_letter_path: Optional[str] = None
+        cover_letter_path: Optional[str] = None,
+        auto_mode: bool = False
     ) -> Dict[str, Any]:
         """Apply to a job with specified mode."""
         job_hash = job.get('job_hash', 'unknown')
@@ -93,7 +94,7 @@ class ApplyAgent:
                     print("[DRAFT] Screenshot taken, no further action")
 
                 elif actual_mode == "assisted":
-                    await self._fill_application_fields(page, job, resume_path, result)
+                    await self._fill_application_fields(page, job, resume_path, result, ats_type)
 
                     print("\n" + "=" * 80)
                     print("FIELDS FILLED:")
@@ -106,29 +107,32 @@ class ApplyAgent:
                             print(f"  [SKIP] {field}")
 
                     print("=" * 80)
-                    print("\nWAITING FOR HUMAN APPROVAL")
-                    print("Press Enter to submit or Ctrl+C to cancel...")
 
-                    # Wait for user input (blocking)
-                    try:
-                        await asyncio.get_event_loop().run_in_executor(None, input)
-
-                        # User pressed Enter - submit
+                    if auto_mode:
+                        # Unattended run — submit without prompting
+                        print("\n[AUTO] Submitting immediately (auto mode, no approval prompt)")
                         await self._submit_application(page, ats_type)
                         result['status'] = 'submitted'
-                        print("[SUCCESS] Application submitted")
+                        print("[AUTO] Application submitted")
+                    else:
+                        print("\nWAITING FOR HUMAN APPROVAL")
+                        print("Press Enter to submit or Ctrl+C to cancel...")
+                        try:
+                            await asyncio.get_event_loop().run_in_executor(None, input)
+                            await self._submit_application(page, ats_type)
+                            result['status'] = 'submitted'
+                            print("[SUCCESS] Application submitted")
+                        except KeyboardInterrupt:
+                            result['status'] = 'cancelled_by_user'
+                            print("\n[CANCELLED] Application not submitted")
 
-                        # Take after screenshot
+                    if result['status'] == 'submitted':
                         after_screenshot = screenshot_dir / f"{job_hash}_after_submit.png"
                         await page.screenshot(path=str(after_screenshot), full_page=True)
                         result['screenshots'].append(str(after_screenshot))
 
-                    except KeyboardInterrupt:
-                        result['status'] = 'cancelled_by_user'
-                        print("\n[CANCELLED] Application not submitted")
-
                 elif actual_mode == "auto":
-                    await self._fill_application_fields(page, job, resume_path, result)
+                    await self._fill_application_fields(page, job, resume_path, result, ats_type)
 
                     # Auto-submit
                     await self._submit_application(page, ats_type)
@@ -190,10 +194,24 @@ class ApplyAgent:
         page: Page,
         job: Dict[str, Any],
         resume_path: str,
-        result: Dict[str, Any]
+        result: Dict[str, Any],
+        ats_type: str = 'generic'
     ):
         """Fill application form fields."""
         print("[FILL] Starting to fill application fields...")
+
+        # Seek loads form fields via JS; give it time to render
+        await page.wait_for_timeout(3000)
+
+        # Seek requires the user to be signed in before form fields appear
+        if ats_type == 'seek':
+            logged_in = await self._check_seek_login(page)
+            if not logged_in:
+                print("\n[ACTION NEEDED] Please log in to Seek in the browser window, "
+                      "then press Enter to continue.")
+                await asyncio.get_event_loop().run_in_executor(None, input)
+                # Let the page settle and re-render after login
+                await page.wait_for_timeout(3000)
 
         # Extract candidate info
         name = self.candidate_profile.get('name', 'Rudra Joshi')
@@ -227,6 +245,32 @@ class ApplyAgent:
                 result['fields_filled'].append(f"resume: {Path(resume_path).name}")
             else:
                 result['fields_skipped'].append("resume upload (couldn't find upload button)")
+
+    async def _check_seek_login(self, page: Page) -> bool:
+        """Return False if Seek shows a login wall, True if the user appears signed in."""
+        current_url = page.url.lower()
+        if any(token in current_url for token in ('login', 'signin', 'sign-in', 'register')):
+            return False
+
+        login_selectors = [
+            'a:has-text("Sign in")',
+            'a:has-text("Log in")',
+            'button:has-text("Sign in")',
+            'button:has-text("Log in")',
+            '[data-automation="sign-in"]',
+            '[data-testid="sign-in"]',
+            'a[href*="/login"]',
+            'a[href*="/signin"]',
+        ]
+        for selector in login_selectors:
+            try:
+                element = await page.query_selector(selector)
+                if element and await element.is_visible():
+                    return False
+            except Exception:
+                continue
+
+        return True
 
     async def _try_fill_field(self, page: Page, field_name: str, value: str) -> bool:
         """Try to fill a field by various selectors."""

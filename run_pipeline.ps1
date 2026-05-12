@@ -1,0 +1,5 @@
+Set-Location "C:\Users\rjjos\job-agent"
+& ".\.venv\Scripts\Activate.ps1"
+$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+Add-Content -Path "logs\scheduler.log" -Value "`n========== $timestamp =========="
+python main.py --auto 2>&1 | Add-Content -Path "logs\scheduler.log"

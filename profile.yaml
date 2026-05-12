@@ -1,0 +1,250 @@
+# ============================================================
+# JobPilot — Candidate Profile
+# All agents read from this file. Never hardcode these values.
+# ============================================================
+
+candidate:
+  name: Rudra Joshi
+  email: ""                        # fill in
+  phone: ""                        # fill in
+  location: Sydney, NSW, Australia
+  linkedin: ""                     # fill in
+  github: ""                       # fill in
+  university: University of Wollongong
+  degree: Bachelor of Computer Science
+  graduation: September 2025
+  experience_band: "0-2 years"
+  classification: Graduate / Junior
+
+# ------------------------------------------------------------
+# Search Configuration
+# ------------------------------------------------------------
+search:
+  locations:
+    tier1:
+      - Sydney
+      - Remote
+    tier2:
+      - Melbourne
+      - Brisbane
+      - Canberra
+      - Perth
+  country: Australia
+
+  job_titles:
+    - AI Engineer
+    - ML Engineer
+    - Machine Learning Engineer
+    - GenAI Developer
+    - Generative AI Engineer
+    - AI/ML Engineer
+    - AI Software Engineer
+    - LLM Engineer
+    - NLP Engineer
+    - Data Scientist
+    - Applied ML Engineer
+    - Applied AI Engineer
+    - AI Developer
+    - Deep Learning Engineer
+    - AI Research Engineer
+    - Conversational AI Engineer
+    - AI Platform Engineer
+    - AI Solutions Engineer
+    - Graduate AI Engineer
+    - Junior AI Engineer
+    - Junior ML Engineer
+    - Graduate ML Engineer
+    - AI Backend Engineer
+    - Python Developer
+    - Backend Engineer AI
+    - AI Integration Engineer
+    - Prompt Engineer
+    - RAG Engineer
+    - AI Automation Engineer
+    - Data Engineer
+    - MLOps Engineer
+    - AI Infrastructure Engineer
+    - Software Engineer ML
+    - Graduate Software Engineer
+    - Junior Software Engineer
+    - AI Consultant
+    - Graduate Data Scientist
+    - Junior Data Scientist
+    - NLP Developer
+    - Chatbot Developer
+    - AI Product Engineer
+
+  scraper_keywords:
+    - AI Engineer
+    - Machine Learning Engineer
+    - GenAI Developer
+    - LLM Engineer
+    - Data Scientist
+    - NLP Engineer
+    - MLOps Engineer
+    - Graduate AI Engineer
+    - Junior AI Engineer
+    - Python Developer AI
+    - RAG Engineer
+    - AI Software Engineer
+
+# ------------------------------------------------------------
+# Matching & Routing
+# ------------------------------------------------------------
+matching:
+  min_score: 50
+  priority_score: 65
+  stretch_score: 50
+
+  experience_bands:
+    target: "0-1 years"
+    stretch: "1-2 years"
+
+  location_tiers:
+    tier1_bonus: 10
+    tier2_penalty: 0
+
+  exclude_keywords:
+    - Senior
+    - Lead
+    - Principal
+    - Staff
+    - Director
+    - Manager
+    - Head of
+    - VP
+    - "5+ years"
+    - "7+ years"
+    - "10+ years"
+
+# ------------------------------------------------------------
+# Skills
+# ------------------------------------------------------------
+skills:
+  languages:
+    - Python
+    - SQL
+    - Bash
+    - YAML
+    - JSON
+
+  frameworks_libraries:
+    - LangChain
+    - LlamaIndex
+    - FastAPI
+    - Hugging Face Transformers
+    - scikit-learn
+    - PyTorch
+    - TensorFlow
+    - Keras
+    - Pandas
+    - NumPy
+    - Streamlit
+    - Gradio
+
+  ai_ml:
+    - Large Language Models (LLM)
+    - Generative AI (GenAI)
+    - RAG (Retrieval-Augmented Generation)
+    - Natural Language Processing (NLP)
+    - Prompt Engineering
+    - Fine-tuning
+    - Llama / Open Source LLMs
+    - Embeddings
+    - Semantic Search
+    - Hybrid Retrieval
+    - Vector Databases
+    - FAISS
+    - Chroma
+    - Pinecone
+    - Anomaly Detection
+    - Model Evaluation
+    - Evaluation Harness
+    - Golden Set Evaluation
+    - Inference Pipelines
+    - Deep Learning
+    - Neural Networks
+    - Recurrent Neural Networks (DRNN)
+    - Machine Learning
+
+  infrastructure_ops:
+    - Docker
+    - Git
+    - GitHub Actions
+    - CI/CD
+    - REST API
+    - Microservices
+    - MLOps
+    - Model Deployment
+    - API Development
+    - Linux
+    - AWS
+    - Azure
+    - GCP
+    - Jupyter
+
+  soft_adjacent:
+    - Agile
+    - Technical Writing
+    - System Design
+
+# ------------------------------------------------------------
+# Projects
+# ------------------------------------------------------------
+projects:
+  - name: PersonaQuery
+    description: >
+      Full RAG pipeline with evaluation harness using golden sets to
+      regression-test retrieval quality across prompt iterations.
+      Implemented citation guardrails and hallucination mitigation.
+      Benchmarked deployment trade-offs via p95 latency measurements.
+    stack:
+      - LangChain
+      - LlamaIndex
+      - Groq Llama-3.3-70B
+      - FastAPI
+      - FAISS
+    metrics:
+      - p95 latency benchmarking across deployment configs
+
+  - name: HealthEcho
+    description: >
+      Anomaly detection pipeline with systematic threshold tuning
+      achieving ~40% false positive reduction. Includes FastAPI
+      inference layer, structured observability logging for production
+      debugging, and batch scoring workflows for ongoing model monitoring.
+    stack:
+      - Python
+      - FastAPI
+      - scikit-learn
+      - Docker
+    metrics:
+      - 40% false positive reduction via threshold tuning
+
+# ------------------------------------------------------------
+# QA / Honesty Rules
+# ------------------------------------------------------------
+qa:
+  never_claim:
+    - Kubernetes
+    - Terraform
+    - Spark
+    - Scala
+    - C++
+    - Node.js
+
+  banned_phrases:
+    - "I'd love to"
+    - "passion for"
+    - "passionate about"
+    - "team player"
+    - "hard worker"
+    - "go-getter"
+    - "detail-oriented"
+    - "fast learner"
+    - "eager to learn"
+    - "Thank you for your time and consideration"
+    - "I am writing to express"
+    - "I am excited to apply"
+    - "dream job"
+    - "perfect fit"

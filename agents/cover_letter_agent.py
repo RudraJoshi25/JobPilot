@@ -1,31 +1,58 @@
 """
 Cover Letter Agent - Generates tailored cover letters.
-Uses Claude Sonnet 4.5 for high-quality writing.
+Uses Claude Opus 4.5 for high-quality writing.
 """
 import json
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from docx import Document
 from docx.shared import Pt
 from services.claude_client import ClaudeClient
+import yaml
+
+
+def load_profile_yaml(profile_path: str = "profile.yaml") -> Dict[str, Any]:
+    """Load profile.yaml as single source of truth."""
+    with open(profile_path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f)
 
 
 class CoverLetterAgent:
     """Agent for generating tailored cover letters."""
 
-    def __init__(self, profile_path: str = "data/candidate_profile.json"):
-        self.profile_path = profile_path
-        self.candidate_profile = self._load_profile()
-        # COST OPTIMIZATION: Switch to Opus 4.5 (500K/min limit vs Sonnet's 30K/min)
+    def __init__(self, profile: Dict[str, Any] = None):
+        self.profile = profile or load_profile_yaml()
+        self.candidate_profile = self._build_candidate_profile()
         self.client = ClaudeClient(model="claude-opus-4-5")
-        # IMPROVEMENT #3: Critic also uses Opus for consistency (same rate limit pool)
         self.critic_client = ClaudeClient(model="claude-opus-4-5")
 
-    def _load_profile(self) -> Dict[str, Any]:
-        """Load candidate profile."""
-        with open(self.profile_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        qa_config = self.profile.get('qa', {})
+        self.banned_phrases = qa_config.get('banned_phrases', [])
+        self.never_claim = qa_config.get('never_claim', [])
+
+    def _build_candidate_profile(self) -> Dict[str, Any]:
+        """Build candidate profile dict from profile.yaml structure."""
+        candidate = self.profile.get('candidate', {})
+        skills = self.profile.get('skills', {})
+        projects = self.profile.get('projects', [])
+
+        all_skills = []
+        for category in skills.values():
+            if isinstance(category, list):
+                all_skills.extend(category)
+
+        return {
+            'name': candidate.get('name', ''),
+            'location': candidate.get('location', ''),
+            'education': [{
+                'degree': candidate.get('degree', ''),
+                'institution': candidate.get('university', ''),
+                'graduation_year': candidate.get('graduation', '')
+            }],
+            'skills': all_skills,
+            'projects': projects
+        }
 
     def generate_cover_letter(
         self,
@@ -245,7 +272,7 @@ Revised cover letter:"""
 
     def _run_quality_self_check(self, cover_letter: str, company_name: str, role_title: str) -> str:
         """Run quality self-check and rewrite if needed."""
-        banned_phrases = [
+        banned_phrases = self.banned_phrases if self.banned_phrases else [
             "I am excited to",
             "I would love to",
             "passionate about",
@@ -319,7 +346,22 @@ Write the NEW version now:"""
 
     def _build_cover_letter_system_prompt(self) -> str:
         """Build system prompt for cover letter generation."""
-        return """You are an expert cover letter writer specializing in thoughtful, engineer-focused letters.
+        candidate_name = self.profile.get('candidate', {}).get('name', 'Rudra Joshi')
+        candidate_location = self.profile.get('candidate', {}).get('location', 'Sydney, NSW, Australia')
+        city = candidate_location.split(',')[0].strip()
+
+        projects = self.profile.get('projects', [])
+        project_details = self._format_project_details_for_prompt(projects)
+
+        banned_list = '\n'.join([f"❌ \"{phrase}\"" for phrase in self.banned_phrases[:7]]) if self.banned_phrases else """❌ "I am excited to"
+❌ "I would love to"
+❌ "passionate about"
+❌ "I believe I would be a great fit"
+❌ "I am writing to apply"
+❌ "hit the ground running"
+❌ "fast-paced environment\""""
+
+        return f"""You are an expert cover letter writer specializing in thoughtful, engineer-focused letters.
 
 STRUCTURE (exactly 4 paragraphs + sign-off):
 
@@ -330,23 +372,15 @@ Start with a sharp observation about what makes this domain/problem genuinely ha
 If there's a skill gap between profile and JD, acknowledge it honestly but immediately reframe to what IS directly relevant. Be confident, not apologetic. This shows maturity and self-awareness.
 
 **Paragraph 3 - Project specifics (4-5 sentences)**:
-Describe PersonaQuery and HealthEcho with EXACT technical details from profile:
-- PersonaQuery: evaluation harness, golden set for regression testing retrieval quality, citation guardrails, hallucination mitigation, p95 latency benchmarking, agent-assisted workflow, Groq (Llama-3.3-70B), LangChain, LlamaIndex
-- HealthEcho: threshold tuning for ~40% false positive reduction, FastAPI inference layer, observability logging, anomaly detection pipeline, batch scoring
+{project_details}
 
 **Paragraph 4 - Company-specific closing (2-3 sentences)**:
-Reference the exact problem the company is solving (from JD). Mention Sydney location and availability. Invite informal conversation.
+Reference the exact problem the company is solving (from JD). Mention {city} location and availability. Invite informal conversation.
 
-**Sign-off**: "Thank you for your time and consideration.\n\nSincerely,\nRudra Joshi"
+**Sign-off**: "Thank you for your time and consideration.\\n\\nSincerely,\\n{candidate_name}"
 
 STRICTLY BANNED PHRASES (will fail if used):
-❌ "I am excited to"
-❌ "I would love to"
-❌ "passionate about"
-❌ "I believe I would be a great fit"
-❌ "I am writing to apply"
-❌ "hit the ground running"
-❌ "fast-paced environment"
+{banned_list}
 
 TONE RULES:
 ✓ Write like a thoughtful engineer discussing technical work
@@ -355,10 +389,24 @@ TONE RULES:
 ✓ Maximum 380 words
 ✓ ALWAYS mention company name in Para 4
 ✓ ALWAYS mention specific role title in Para 4
-✓ ALWAYS mention Sydney in Para 4
+✓ ALWAYS mention {city} in Para 4
 
 OUTPUT FORMAT:
 Just the cover letter text (4 paragraphs + sign-off), no additional commentary."""
+
+    def _format_project_details_for_prompt(self, projects: List[Dict[str, Any]]) -> str:
+        """Format project details for system prompt."""
+        if not projects:
+            return "Describe your key projects with EXACT technical details from your profile."
+
+        lines = ["Describe these projects with EXACT technical details from profile:"]
+        for p in projects:
+            name = p.get('name', '')
+            desc = p.get('description', '').strip().replace('\n', ' ')
+            stack = ', '.join(p.get('stack', []))
+            metrics = ', '.join(p.get('metrics', []))
+            lines.append(f"- {name}: {desc[:300]} (Stack: {stack})" + (f" (Metrics: {metrics})" if metrics else ""))
+        return '\n'.join(lines)
 
     def _build_cover_letter_prompt(
         self,
@@ -421,18 +469,18 @@ Then write ONLY the 4-paragraph cover letter (max 380 words):
 
 Para 1: Start with insight about what makes this domain/problem hard, then connect to why this company
 Para 2: Honest acknowledgment of any gap + immediate reframe to relevant strengths
-Para 3: PersonaQuery and HealthEcho project specifics (evaluation harness, 40% FP reduction, p95 latency, FastAPI, etc.)
-Para 4: Reference company's specific problem from JD + mention Sydney + invite conversation
+Para 3: Project specifics from the candidate profile
+Para 4: Reference company's specific problem from JD + mention location + invite conversation
 
-End with: "Thank you for your time and consideration.\n\nSincerely,\nRudra Joshi"
+End with: "Thank you for your time and consideration.\\n\\nSincerely,\\n{self.profile.get('candidate', {}).get('name', 'Rudra Joshi')}"
 
 CRITICAL: Output ONLY the cover letter text. Do NOT include your pre-writing analysis, thinking, or answers to (a)(b)(c).
 
 Remember:
-- NO "I am excited to" or "I would love to" or "passionate about"
+- NO banned phrases from the profile
 - Use technical vocabulary naturally
 - MUST mention company name and role in Para 4 (if known)
-- MUST mention Sydney in Para 4"""
+- MUST mention {self.profile.get('candidate', {}).get('location', 'Sydney').split(',')[0]} in Para 4"""
 
         return prompt
 
@@ -440,7 +488,11 @@ Remember:
         """Convert cover letter to DOCX format."""
         doc = Document()
 
-        # Set standard margins
+        candidate = self.profile.get('candidate', {})
+        candidate_name = candidate.get('name', 'Rudra Joshi')
+        candidate_location = candidate.get('location', 'Sydney, NSW, Australia')
+        candidate_university = candidate.get('university', 'University of Wollongong')
+
         sections = doc.sections
         for section in sections:
             section.top_margin = Pt(72)
@@ -448,14 +500,10 @@ Remember:
             section.left_margin = Pt(72)
             section.right_margin = Pt(72)
 
-        # Add header with contact info
         header_para = doc.add_paragraph()
-        header_para.add_run("Rudra Joshi\n").bold = True
-        header_para.add_run(f"{self.candidate_profile.get('location', 'Sydney, NSW, Australia')}\n")
-
-        if self.candidate_profile.get('education'):
-            edu = self.candidate_profile['education'][0]
-            header_para.add_run(f"{edu.get('institution', 'University of Wollongong')}\n")
+        header_para.add_run(f"{candidate_name}\n").bold = True
+        header_para.add_run(f"{candidate_location}\n")
+        header_para.add_run(f"{candidate_university}\n")
 
         header_para.space_after = Pt(12)
 
@@ -483,11 +531,10 @@ Remember:
                 for run in para.runs:
                     run.font.size = Pt(11)
 
-        # Add closing
         closing_para = doc.add_paragraph()
         closing_para.space_after = Pt(6)
         closing_para.add_run("Sincerely,\n\n")
-        closing_para.add_run("Rudra Joshi").bold = True
+        closing_para.add_run(candidate_name).bold = True
 
         doc.save(output_file)
 

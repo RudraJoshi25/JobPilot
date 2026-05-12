@@ -9,17 +9,40 @@ from urllib.parse import quote_plus
 from playwright.async_api import async_playwright, Page, Browser
 import requests
 import os
+import yaml
+
+
+def load_profile(profile_path: str = "profile.yaml") -> Dict[str, Any]:
+    """Load profile.yaml as single source of truth."""
+    with open(profile_path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f)
 
 
 class MultiSourceAgent:
-    def __init__(self, headless: bool = True, max_jobs_per_search: int = 15):
+    def __init__(self, headless: bool = True, max_jobs_per_search: int = 15, profile: Dict[str, Any] = None):
         self.headless = headless
         self.max_jobs_per_search = max_jobs_per_search
         self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         self.all_jobs = []
 
-    async def run(self, search_terms: List[str], location: str = "Sydney NSW") -> List[Dict[str, Any]]:
-        """Run all scrapers for all search terms and deduplicate results."""
+        self.profile = profile or load_profile()
+        self.tier1_locations = self.profile.get('search', {}).get('locations', {}).get('tier1', ['Sydney', 'Remote'])
+
+    async def run(self, search_terms: List[str] = None, location: str = None) -> List[Dict[str, Any]]:
+        """Run all scrapers for all search terms and deduplicate results.
+
+        Args:
+            search_terms: Optional override; defaults to scraper_keywords from profile.yaml
+            location: Optional override; defaults to first tier1 location + country
+        """
+        if search_terms is None:
+            search_terms = self.profile.get('search', {}).get('scraper_keywords', [])
+
+        if location is None:
+            tier1 = self.tier1_locations[0] if self.tier1_locations else 'Sydney'
+            country = self.profile.get('search', {}).get('country', 'Australia')
+            location = f"{tier1} {country}"
+
         print(f"Starting multi-source job scraping...", flush=True)
         print(f"Search terms: {search_terms}", flush=True)
         print(f"Location: {location}", flush=True)
@@ -37,9 +60,12 @@ class MultiSourceAgent:
                 await self._run_scraper("Indeed", self.indeed_scraper, context, search_term, location)
                 await self._run_scraper("GradConnection", self.gradconnection_scraper, context, search_term, location)
                 await self._run_scraper("Adzuna", self.adzuna_scraper, context, search_term, location)
-                # await self._run_scraper("Talent", self.talent_scraper, context, search_term, location)  # Disabled: returns 0 jobs
 
             await browser.close()
+
+        for job in self.all_jobs:
+            if 'location_tier' not in job:
+                job['location_tier'] = self._get_location_tier(job.get('location', ''))
 
         unique_jobs = self._deduplicate_jobs()
         self._save_results(unique_jobs)
@@ -49,6 +75,14 @@ class MultiSourceAgent:
         print("=" * 80, flush=True)
 
         return unique_jobs
+
+    def _get_location_tier(self, location: str) -> int:
+        """Determine location tier based on profile tier1 locations."""
+        location_lower = location.lower()
+        for tier1 in self.tier1_locations:
+            if tier1.lower() in location_lower:
+                return 1
+        return 2
 
     async def _run_scraper(self, name: str, scraper_func, context, search_term: str, location: str):
         """Run a single scraper with error handling and 60s timeout."""
@@ -369,7 +403,7 @@ class MultiSourceAgent:
             await job_page.close()
 
         return None
-    
+
     async def adzuna_scraper(self, context, search_term: str, location: str) -> List[Dict[str, Any]]:
         # Fetch jobs from Adzuna API - no Playwright needed, pure HTTP
         jobs = []
@@ -392,8 +426,12 @@ class MultiSourceAgent:
                 return []
 
             url = "https://api.adzuna.com/v1/api/jobs/au/search/1"
-            response = requests.get(url, params=params, timeout=10)
-            data = response.json()
+            with requests.Session() as session:
+                response = session.get(url, params=params, timeout=10)
+                try:
+                    data = response.json()
+                finally:
+                    response.close()
 
             for job in data.get("results", []):
                 jobs.append({
@@ -535,22 +573,13 @@ class MultiSourceAgent:
 
 
 async def main():
-    """Example usage."""
-    agent = MultiSourceAgent(headless=True, max_jobs_per_search=15)
+    """Example usage - uses profile.yaml for config."""
+    profile = load_profile()
+    agent = MultiSourceAgent(headless=True, max_jobs_per_search=15, profile=profile)
 
-    search_terms = [
-        "AI Engineer",
-        "Machine Learning Engineer",
-        "GenAI Engineer",
-        "Graduate AI"
-    ]
-
-    location = "Sydney NSW"
-
-    results = await agent.run(search_terms, location)
+    results = await agent.run()
     return results
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-

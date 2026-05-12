@@ -51,6 +51,12 @@ async def main():
         help='Skip to apply stage for already-approved jobs'
     )
 
+    parser.add_argument(
+        '--auto',
+        action='store_true',
+        help='Unattended run: auto-apply to QA-passed jobs with score >= 80, queue the rest for manual review'
+    )
+
     # Layer 5: Strategic Agent
     parser.add_argument(
         '--strategy',
@@ -79,7 +85,20 @@ async def main():
         help='Path to pipeline configuration file'
     )
 
+    parser.add_argument(
+        '--clear-cache',
+        action='store_true',
+        help='Clear the applied jobs dedup cache before running'
+    )
+
     args = parser.parse_args()
+
+    # Handle cache clearing
+    if args.clear_cache:
+        cache_file = Path("data/application_memory.json")
+        if cache_file.exists():
+            cache_file.unlink()
+        print("[CACHE] Applied jobs cache cleared")
 
     # Handle special modes first (non-pipeline commands)
 
@@ -190,7 +209,8 @@ async def main():
         await master.run_pipeline(
             test_mode=args.test,
             docs_only=args.docs_only,
-            apply_only=args.apply_only
+            apply_only=args.apply_only,
+            auto_mode=args.auto
         )
 
         print("\n[SUCCESS] Pipeline execution completed successfully!")

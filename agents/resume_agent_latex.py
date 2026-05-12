@@ -1,6 +1,6 @@
 """
 Resume Agent (LaTeX Edition) - Edits existing LaTeX resume for specific jobs.
-Uses Claude Sonnet 4.5 for high-quality targeted edits.
+Uses Claude Opus 4.5 for high-quality targeted edits.
 """
 import json
 import subprocess
@@ -9,22 +9,46 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
 from services.claude_client import ClaudeClient
+import yaml
+
+
+def load_profile_yaml(profile_path: str = "profile.yaml") -> Dict[str, Any]:
+    """Load profile.yaml as single source of truth."""
+    with open(profile_path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f)
 
 
 class ResumeAgent:
     """Agent for editing LaTeX resumes based on job requirements."""
 
-    def __init__(self, base_resume_path: str = "data/base_resume.tex", profile_path: str = "data/candidate_profile.json"):
+    def __init__(self, base_resume_path: str = "data/base_resume.tex", profile: Dict[str, Any] = None):
         self.base_resume_path = base_resume_path
-        self.profile_path = profile_path
-        self.candidate_profile = self._load_profile()
-        # COST OPTIMIZATION: Switch to Opus 4.5 (500K/min limit vs Sonnet's 30K/min)
+        self.profile = profile or load_profile_yaml()
+        self.candidate_profile = self._build_candidate_profile()
         self.client = ClaudeClient(model="claude-opus-4-5")
 
-    def _load_profile(self) -> Dict[str, Any]:
-        """Load candidate profile."""
-        with open(self.profile_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+    def _build_candidate_profile(self) -> Dict[str, Any]:
+        """Build candidate profile dict from profile.yaml structure."""
+        candidate = self.profile.get('candidate', {})
+        skills = self.profile.get('skills', {})
+        projects = self.profile.get('projects', [])
+
+        all_skills = []
+        for category in skills.values():
+            if isinstance(category, list):
+                all_skills.extend(category)
+
+        return {
+            'name': candidate.get('name', ''),
+            'location': candidate.get('location', ''),
+            'education': [{
+                'degree': candidate.get('degree', ''),
+                'institution': candidate.get('university', ''),
+                'graduation_year': candidate.get('graduation', '')
+            }],
+            'skills': all_skills,
+            'projects': projects
+        }
 
     def generate_tailored_resume(
         self,
@@ -163,9 +187,22 @@ INSTRUCTIONS:
 6. DO NOT change any LaTeX commands or structure
 7. Preserve all special characters exactly (\\\\, \\%, \\$, etc.)
 
-Focus on PersonaQuery and HealthEcho projects if they match the JD requirements.
+Focus on these projects if they match the JD requirements:
+{self._format_projects()}
 
 Return the complete modified .tex file, then "---CHANGELOG---", then explain changes."""
+
+    def _format_projects(self) -> str:
+        """Format projects from profile for prompt."""
+        projects = self.profile.get('projects', [])
+        lines = []
+        for p in projects:
+            name = p.get('name', '')
+            desc = p.get('description', '').strip().replace('\n', ' ')
+            stack = ', '.join(p.get('stack', []))
+            metrics = ', '.join(p.get('metrics', []))
+            lines.append(f"- {name}: {desc[:200]} (Stack: {stack}) (Metrics: {metrics})")
+        return '\n'.join(lines) if lines else "PersonaQuery and HealthEcho"
 
     def _generate_diff(self, original: str, modified: str) -> str:
         """Generate a unified diff showing changes."""

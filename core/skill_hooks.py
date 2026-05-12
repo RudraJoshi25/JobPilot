@@ -75,7 +75,8 @@ class SkillRegistry:
             }
 
             # Search for general company info
-            with DDGS() as ddgs:
+            ddgs = DDGS()
+            try:
                 # Company overview
                 overview_results = list(ddgs.text(
                     f"{company_name} company size industry overview",
@@ -129,6 +130,9 @@ class SkillRegistry:
                     {'title': r.get('title', ''), 'url': r.get('href', '')}
                     for r in news_results
                 ]
+            finally:
+                if hasattr(ddgs, 'session'):
+                    ddgs.session.close()
 
             # Cache the result
             cache[company_name] = result
@@ -165,12 +169,68 @@ class SkillRegistry:
     # SKILL 2 — Keyword Density Analyzer
     # ═══════════════════════════════════════════════════════════
 
-    def keyword_density_analyzer(self, resume_text: str, jd_text: str) -> Dict[str, Any]:
+    def keyword_density_analyzer(
+        self,
+        resume_text: str,
+        jd_text: str,
+        job: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Analyze keyword density between resume and JD.
         Pure Python implementation without Claude.
+
+        Args:
+            resume_text: Full text of the tailored resume.
+            jd_text: Job description text (raw_description field).
+            job: Full job dict — used as fallback when jd_text is empty.
         """
         print(f"  [SKILL] Analyzing keyword density", flush=True)
+
+        # Always augment jd_text from all available job fields
+        if job:
+            all_desc_parts = []
+            if jd_text:
+                all_desc_parts.append(jd_text)
+            for field in ('raw_description', 'description', 'job_description', 'body',
+                          'short_description', 'full_description'):
+                val = (job.get(field) or '').strip()
+                if val and val not in all_desc_parts:
+                    all_desc_parts.append(val)
+            req = job.get('required_skills') or []
+            if isinstance(req, list) and req:
+                skills_str = ' '.join(req)
+                if skills_str not in all_desc_parts:
+                    all_desc_parts.append(skills_str)
+            resp = job.get('responsibilities') or []
+            if isinstance(resp, list) and resp:
+                resp_str = ' '.join(resp)
+                if resp_str not in all_desc_parts:
+                    all_desc_parts.append(resp_str)
+            title = (job.get('title') or '').strip()
+            if title and title not in all_desc_parts:
+                all_desc_parts.append(title)
+            jd_text = ' '.join(all_desc_parts)
+
+        # Debug: show exactly what text is being analysed
+        print(
+            f"  [SKILL] JD text: {len(jd_text)} chars | Resume: {len(resume_text)} chars",
+            flush=True
+        )
+        if jd_text:
+            print(f"  [SKILL] JD preview: {jd_text[:200]!r}", flush=True)
+
+        if not jd_text:
+            print(
+                f"  [SKILL] WARNING: job description is empty — keyword analysis skipped",
+                flush=True
+            )
+            return {
+                'match_pct': 0.0,
+                'total_keywords_analyzed': 0,
+                'present_keywords': [],
+                'missing_keywords': [],
+                'suggestions': []
+            }
 
         # Common stopwords to exclude
         stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
@@ -383,8 +443,12 @@ class SkillRegistry:
 
             query = f"{role} salary {location} 2026 site:glassdoor.com OR site:seek.com.au OR site:levels.fyi"
 
-            with DDGS() as ddgs:
+            ddgs = DDGS()
+            try:
                 results = list(ddgs.text(query, max_results=5))
+            finally:
+                if hasattr(ddgs, 'session'):
+                    ddgs.session.close()
 
             # Try to extract salary numbers from results
             salary_numbers = []

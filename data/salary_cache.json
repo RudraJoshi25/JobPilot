@@ -8,5 +8,125 @@
     "source": "Estimated (no data found)",
     "sample_size": 0,
     "cached_at": "2026-05-10T11:05:48.729137"
+  },
+  "automation_and_ai_engineer_sydney_nsw": {
+    "role": "Automation and AI Engineer",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T19:50:32.527736"
+  },
+  "ai_deployment_engineer,_startups_sydney_nsw": {
+    "role": "AI Deployment Engineer, Startups",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T21:14:42.063429"
+  },
+  "generative_ai_engineer_remote": {
+    "role": "Generative AI Engineer",
+    "location": "Remote",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T21:33:12.107608"
+  },
+  "ai_platform_engineer_remote": {
+    "role": "AI Platform Engineer",
+    "location": "Remote",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T21:53:45.550048"
+  },
+  "junior_ai_engineer_sydney_nsw": {
+    "role": "Junior AI Engineer",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:24:51.500779"
+  },
+  "data_scientist_-_production_gen_ai_sydney_nsw": {
+    "role": "Data Scientist - Production Gen AI",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:26:46.965307"
+  },
+  "graduate_software_engineer_sydney_nsw": {
+    "role": "Graduate Software Engineer",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:28:34.450068"
+  },
+  "junior_ai_consultant_sydney_nsw": {
+    "role": "Junior AI Consultant",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:30:22.519442"
+  },
+  "ai_software_engineer_sydney_nsw": {
+    "role": "Ai Software Engineer",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:32:04.040877"
+  },
+  "data,_ai,_and_machine_learning_specialist_sydney_nsw": {
+    "role": "Data, AI, and Machine Learning Specialist",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:33:48.888746"
+  },
+  "ai_engineer_sydney_nsw": {
+    "role": "AI Engineer",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:35:40.378776"
+  },
+  "applied_ai_agent_engineer_sydney_nsw": {
+    "role": "Applied AI Agent Engineer",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-12T23:37:25.773045"
   }
 }

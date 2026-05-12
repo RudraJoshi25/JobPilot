@@ -14,6 +14,8 @@ import asyncio
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+import yaml
+
 from agents.source_agent import MultiSourceAgent
 from agents.normalizer_agent import NormalizerAgent
 from agents.match_agent import MatchAgent
@@ -23,15 +25,34 @@ from agents.qa_agent import QAAgent
 from agents.apply_agent import ApplyAgent
 from agents.email_apply_agent import EmailApplyAgent
 
-# Layer 3 & 4 imports
 from core.skill_hooks import SkillRegistry
+
+
+def load_profile_yaml(profile_path: str = "profile.yaml") -> Dict[str, Any]:
+    """Load profile.yaml as single source of truth."""
+    with open(profile_path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f)
 
 
 class MasterAgent:
     """Master orchestrator for the job application pipeline with enterprise features."""
 
-    def __init__(self, config_path: str = "data/pipeline_config.json", enable_guardrails: bool = False):
+    def __init__(self, config_path: str = "data/pipeline_config.json", profile_path: str = "profile.yaml", enable_guardrails: bool = False):
         self.config = self._load_config(config_path)
+        self.profile = load_profile_yaml(profile_path)
+
+        matching_config = self.profile.get('matching', {})
+        self.config['score_threshold_maybe'] = matching_config.get('min_score', 50)
+        self.config['score_threshold_priority'] = matching_config.get('priority_score', 65)
+
+        search_config = self.profile.get('search', {})
+        if 'search_terms' not in self.config or not self.config['search_terms']:
+            self.config['search_terms'] = search_config.get('scraper_keywords', [])
+
+        if 'location' not in self.config or not self.config['location']:
+            tier1 = search_config.get('locations', {}).get('tier1', ['Sydney'])
+            country = search_config.get('country', 'Australia')
+            self.config['location'] = f"{tier1[0]} {country}" if tier1 else f"Sydney {country}"
         self.pipeline_log = {
             'started_at': datetime.now().isoformat(),
             'config': self.config,
@@ -60,18 +81,22 @@ class MasterAgent:
         with open(config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
-    async def run_pipeline(self, test_mode: bool = False, docs_only: bool = False, apply_only: bool = False):
+    async def run_pipeline(self, test_mode: bool = False, docs_only: bool = False, apply_only: bool = False, auto_mode: bool = False):
         """Run complete pipeline."""
-        # Store test_mode in config for child methods
         self.config['test_mode'] = test_mode
+        self.config['auto_mode'] = auto_mode
 
         print("=" * 100)
         print("MASTER AGENT - JOB APPLICATION PIPELINE")
         print("=" * 100)
         print(f"Started: {self.pipeline_log['started_at']}")
-        print(f"Mode: {'TEST' if test_mode else 'PRODUCTION'}")
-        if test_mode:
+        if auto_mode:
+            print("Mode: AUTO (unattended — score>=80 auto-apply, rest to manual review queue)")
+        elif test_mode:
+            print("Mode: TEST")
             print("Rate Limiting: SEQUENTIAL processing to avoid 429 errors")
+        else:
+            print("Mode: PRODUCTION")
         if docs_only:
             print("Mode: DOCUMENTS ONLY (skipping scraping)")
         if apply_only:
@@ -92,6 +117,8 @@ class MasterAgent:
 
             # Save final report
             self._save_final_report()
+            if auto_mode:
+                self._write_daily_summary()
 
             print("\n" + "=" * 100)
             print("PIPELINE COMPLETED SUCCESSFULLY")
@@ -104,16 +131,18 @@ class MasterAgent:
             traceback.print_exc()
             self.pipeline_log['error'] = str(e)
             self._save_final_report()
+            if auto_mode:
+                self._write_daily_summary()
 
     async def _run_full_pipeline(self, test_mode: bool):
         """Run full pipeline from scratch."""
-        # Stage 1: Source jobs
         print("\n[STAGE 1] SOURCING JOBS")
         print("-" * 100)
 
         source_agent = MultiSourceAgent(
             headless=True,
-            max_jobs_per_search=2 if test_mode else self.config['max_jobs_per_source']
+            max_jobs_per_search=2 if test_mode else self.config['max_jobs_per_source'],
+            profile=self.profile
         )
         source_agent.visit_job_pages = self.config.get('visit_job_pages', False)
 
@@ -139,49 +168,65 @@ class MasterAgent:
         if Path("data/jobs_raw.json").exists() and not Path("data/jobs_clean.json").exists():
             await self._run_normalize_stage()
 
-        # Stage 3: Match jobs
+        # Stage 3: Match jobs using route_jobs()
         print("\n[STAGE 3] MATCHING JOBS")
         print("-" * 100)
 
         with open("data/jobs_clean.json", 'r', encoding='utf-8') as f:
             clean_jobs = json.load(f)
 
-        if test_mode:
-            clean_jobs = clean_jobs[:2]
+        match_agent = MatchAgent(profile=self.profile)
 
-        match_agent = MatchAgent()
+        print(f"  Evaluating {len(clean_jobs)} jobs...")
+        bands = match_agent.route_jobs(clean_jobs)
+
         shortlisted = []
+        skipped = []
 
-        for idx, job in enumerate(clean_jobs, 1):
-            print(f"  [{idx}/{len(clean_jobs)}] {job['title'][:50]}...", end=" ")
+        for job in bands['PRIORITY']:
+            match_result = job.get('match_result', {})
+            shortlisted.append({
+                'job': job,
+                'match': {
+                    'score': match_result.get('score', 0),
+                    'verdict': match_result.get('verdict', 'apply'),
+                    'matching_skills': match_result.get('matching_skills', []),
+                    'missing_skills': match_result.get('missing_skills', []),
+                    'reasons': match_result.get('reasons', '')
+                }
+            })
+            print(f"  [PRIORITY] {job['title'][:50]}... Score: {match_result.get('score', 0):.1f}")
 
-            try:
-                job_desc = self._format_job_for_matching(job)
-                match_result = match_agent.evaluate_match(job_desc)
+        for job in bands['STRETCH']:
+            match_result = job.get('match_result', {})
+            shortlisted.append({
+                'job': job,
+                'match': {
+                    'score': match_result.get('score', 0),
+                    'verdict': match_result.get('verdict', 'maybe'),
+                    'matching_skills': match_result.get('matching_skills', []),
+                    'missing_skills': match_result.get('missing_skills', []),
+                    'reasons': match_result.get('reasons', '')
+                }
+            })
+            print(f"  [STRETCH]  {job['title'][:50]}... Score: {match_result.get('score', 0):.1f}")
 
-                if match_result.score >= self.config['score_threshold_maybe']:
-                    shortlisted.append({
-                        'job': job,
-                        'match': {
-                            'score': match_result.score,
-                            'verdict': match_result.verdict,
-                            'matching_skills': match_result.matching_skills,
-                            'missing_skills': match_result.missing_skills,
-                            'reasons': match_result.reasons
-                        }
-                    })
-                    print(f"[KEEP] {match_result.score:.1f}")
-                else:
-                    print(f"[SKIP] {match_result.score:.1f}")
-
-            except Exception as e:
-                print(f"[ERROR] {str(e)[:30]}")
+        for job in bands['SKIP']:
+            match_result = job.get('match_result', {})
+            skipped.append({
+                'job': job,
+                'match': match_result,
+                'reason': f"Score {match_result.get('score', 0):.1f} below threshold",
+                'skipped_at': datetime.now().isoformat()
+            })
+            print(f"  [SKIP]     {job['title'][:50]}... Score: {match_result.get('score', 0):.1f}")
 
         # LAYER 4: Priority queue with recency multiplier
         shortlisted = self._apply_priority_queue(shortlisted)
 
-        # LAYER 4: Dynamic routing - filter by score
-        shortlisted, skipped = self._apply_dynamic_routing(shortlisted)
+        # LAYER 4: Dynamic routing - filter by score (extends skipped list)
+        shortlisted, dynamic_skipped = self._apply_dynamic_routing(shortlisted)
+        skipped.extend(dynamic_skipped)
 
         # Apply daily limit
         if len(shortlisted) > self.config['daily_application_limit']:
@@ -231,7 +276,7 @@ class MasterAgent:
         print("\n[STAGE 4] GENERATING DOCUMENTS & RUNNING QA")
         print("-" * 100)
 
-        qa_agent = QAAgent()
+        qa_agent = QAAgent(profile=self.profile)
         human_review_queue = []
 
         for idx, item in enumerate(shortlisted, 1):
@@ -258,9 +303,8 @@ class MasterAgent:
                 print(f"  [QUALITY CHECK] Evaluating cover letter...", flush=True)
                 cover_letter_text = self._read_file(cover_letter_files['markdown'])
 
-                # Create cover letter agent instance for quality check
                 from agents.cover_letter_agent import CoverLetterAgent
-                cl_agent = CoverLetterAgent()
+                cl_agent = CoverLetterAgent(profile=self.profile)
 
                 quality_score, quality_reason = self._check_cover_letter_quality(
                     cover_letter_text,
@@ -306,7 +350,7 @@ class MasterAgent:
                         'resume': resume_files,
                         'cover_letter': cover_letter_files,
                         'qa_status': 'passed',
-                        'qa_report': qa_report.dict(),
+                        'qa_report': qa_report.model_dump(),
                         'cover_letter_quality_score': quality_score
                     })
                     print(f"  [QA PASSED] Added to review queue", flush=True)
@@ -338,8 +382,11 @@ class MasterAgent:
         # Print review queue
         self._print_review_queue(human_review_queue)
 
-        # Ask user about applying
-        await self._interactive_apply(human_review_queue)
+        # Apply stage — auto or interactive
+        if self.config.get('auto_mode'):
+            await self._auto_apply(human_review_queue)
+        else:
+            await self._interactive_apply(human_review_queue)
 
     async def _run_apply_stage(self):
         """Run apply stage for existing review queue."""
@@ -353,7 +400,10 @@ class MasterAgent:
             review_queue = json.load(f)
 
         self._print_review_queue(review_queue)
-        await self._interactive_apply(review_queue)
+        if self.config.get('auto_mode'):
+            await self._auto_apply(review_queue)
+        else:
+            await self._interactive_apply(review_queue)
 
     async def _interactive_apply(self, review_queue: List[Dict[str, Any]]):
         """Interactive application process."""
@@ -396,6 +446,151 @@ class MasterAgent:
         except KeyboardInterrupt:
             print("\n[CANCELLED] Application process cancelled")
 
+    async def _auto_apply(self, review_queue: List[Dict[str, Any]]):
+        """Unattended apply stage — no interactive prompts."""
+        if not review_queue:
+            print("\n[AUTO] No jobs in review queue")
+            return
+
+        auto_jobs = [
+            item for item in review_queue
+            if item['match']['score'] >= 80 and item.get('routing') != 'manual_review'
+        ]
+        manual_jobs = [
+            item for item in review_queue
+            if item['match']['score'] < 80 or item.get('routing') == 'manual_review'
+        ]
+
+        print("\n" + "=" * 100)
+        print("AUTO MODE — APPLY STAGE")
+        print("=" * 100)
+        print(f"  Auto-apply  (score >= 80): {len(auto_jobs)} jobs")
+        print(f"  Manual review             : {len(manual_jobs)} jobs")
+
+        if auto_jobs:
+            indices = [review_queue.index(item) for item in auto_jobs]
+            await self._apply_to_jobs(review_queue, indices)
+
+        if manual_jobs:
+            self._log_manual_review_queue(manual_jobs)
+
+        # Store for daily summary
+        self.pipeline_log['auto_applied_jobs'] = [
+            {
+                'title': item['job'].get('title', 'N/A'),
+                'company': item['job'].get('company', 'N/A'),
+                'score': item['match']['score'],
+                'url': item['job'].get('url', '')
+            }
+            for item in auto_jobs
+        ]
+        self.pipeline_log['manual_review_jobs'] = [
+            {
+                'title': item['job'].get('title', 'N/A'),
+                'company': item['job'].get('company', 'N/A'),
+                'score': item['match']['score'],
+                'routing': item.get('routing', 'N/A'),
+                'url': item['job'].get('url', '')
+            }
+            for item in manual_jobs
+        ]
+
+    def _log_manual_review_queue(self, manual_jobs: List[Dict[str, Any]]):
+        """Append manual-review jobs to logs/manual_review_queue.txt."""
+        log_path = Path("logs/manual_review_queue.txt")
+        log_path.parent.mkdir(exist_ok=True)
+
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+        lines = [f"\n{'=' * 70}", f"Run: {now_str}", f"{'=' * 70}"]
+
+        for item in manual_jobs:
+            job = item['job']
+            score = item['match']['score']
+            routing = item.get('routing', 'unknown')
+            resume_path = item.get('resume', {}).get('pdf') or item.get('resume', {}).get('tex', 'N/A')
+            cl_path = item.get('cover_letter', {}).get('markdown', 'N/A')
+            lines.append(
+                f"  [{score:5.1f}]  [{routing:15s}]  {job.get('title', 'N/A')[:40]:40s}  @  {job.get('company', 'N/A')}"
+            )
+            lines.append(f"             Resume : {resume_path}")
+            lines.append(f"             CL     : {cl_path}")
+            lines.append(f"             URL    : {job.get('url', 'N/A')}")
+
+        with open(log_path, 'a', encoding='utf-8') as f:
+            f.write('\n'.join(lines) + '\n')
+
+        print(f"\n[AUTO] {len(manual_jobs)} job(s) queued for manual review -> {log_path}", flush=True)
+        for item in manual_jobs:
+            job = item['job']
+            print(
+                f"  {item['match']['score']:5.1f}  {job.get('title', '')[:45]:45s}  {job.get('company', '')}",
+                flush=True
+            )
+
+    def _write_daily_summary(self):
+        """Append a run summary to logs/daily_summary.txt."""
+        summary_path = Path("logs/daily_summary.txt")
+        summary_path.parent.mkdir(exist_ok=True)
+
+        now = datetime.now()
+        stages = self.pipeline_log.get('stages', {})
+
+        jobs_found = stages.get('sourcing', {}).get('jobs_found', 'N/A')
+        jobs_shortlisted = stages.get('matching', {}).get('jobs_shortlisted', 'N/A')
+        docs_generated = stages.get('document_generation', {}).get('docs_generated', 'N/A')
+        qa_passed = stages.get('document_generation', {}).get('qa_passed', 'N/A')
+
+        auto_applied = self.pipeline_log.get('auto_applied_jobs', [])
+        manual_review = self.pipeline_log.get('manual_review_jobs', [])
+
+        lines = [
+            "",
+            "=" * 70,
+            f"DAILY SUMMARY  —  {now.strftime('%Y-%m-%d %H:%M')}",
+            "=" * 70,
+            "",
+            "PIPELINE STATS",
+            f"  Jobs found          : {jobs_found}",
+            f"  Jobs shortlisted    : {jobs_shortlisted}",
+            f"  Docs generated      : {docs_generated}",
+            f"  QA passed           : {qa_passed}",
+            "",
+            f"APPLIED ({len(auto_applied)})",
+        ]
+
+        if auto_applied:
+            for job in auto_applied:
+                lines.append(
+                    f"  [{job['score']:5.1f}]  {job['title'][:45]:45s}  @  {job['company']}"
+                )
+        else:
+            lines.append("  (none)")
+
+        lines += [
+            "",
+            f"MANUAL REVIEW QUEUE ({len(manual_review)})",
+        ]
+
+        if manual_review:
+            for job in manual_review:
+                lines.append(
+                    f"  [{job['score']:5.1f}]  [{job['routing']:15s}]  {job['title'][:40]:40s}  @  {job['company']}"
+                )
+            lines.append("  -> See logs/manual_review_queue.txt for document paths")
+        else:
+            lines.append("  (none)")
+
+        error = self.pipeline_log.get('error')
+        if error:
+            lines += ["", f"ERROR: {error}"]
+
+        lines += ["", "=" * 70, ""]
+
+        with open(summary_path, 'a', encoding='utf-8') as f:
+            f.write('\n'.join(lines) + '\n')
+
+        print(f"\n[AUTO] Daily summary written -> {summary_path}")
+
     async def _apply_to_jobs(self, review_queue: List[Dict[str, Any]], selected_indices: List[int]):
         """Apply to selected jobs."""
         apply_agent = ApplyAgent(mode=self.config['apply_mode'])
@@ -430,7 +625,8 @@ class MasterAgent:
                     result = await apply_agent.apply_to_job(
                         job,
                         resume_file,
-                        item['cover_letter']['docx']
+                        item['cover_letter']['docx'],
+                        auto_mode=self.config.get('auto_mode', False)
                     )
 
                 self.pipeline_log['applications'].append(result)
@@ -733,8 +929,8 @@ class MasterAgent:
                 salary_data = self.skills.salary_benchmarker(job.get('title', ''), job.get('location', ''))
                 match_report['salary_benchmark'] = salary_data
 
-                resume_agent = ResumeAgent()
-                cover_letter_agent = CoverLetterAgent()
+                resume_agent = ResumeAgent(profile=self.profile)
+                cover_letter_agent = CoverLetterAgent(profile=self.profile)
 
                 # RATE LIMIT FIX: Check if in test mode
                 test_mode = self.config.get('test_mode', False)
@@ -773,7 +969,7 @@ class MasterAgent:
                 # SKILL 2: Keyword density analysis (after resume is generated)
                 base_resume_text = self._read_file(resume_files['tex'])
                 jd_text = job.get('raw_description', '')
-                keyword_analysis = self.skills.keyword_density_analyzer(base_resume_text, jd_text)
+                keyword_analysis = self.skills.keyword_density_analyzer(base_resume_text, jd_text, job)
 
                 print(f"  [KEYWORDS] Match: {keyword_analysis['match_pct']}% "
                       f"({len(keyword_analysis['present_keywords'])}/{keyword_analysis['total_keywords_analyzed']})",

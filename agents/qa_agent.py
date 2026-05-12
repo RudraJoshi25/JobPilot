@@ -8,12 +8,19 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 from services.claude_client import ClaudeClient
+import yaml
+
+
+def load_profile_yaml(profile_path: str = "profile.yaml") -> Dict[str, Any]:
+    """Load profile.yaml as single source of truth."""
+    with open(profile_path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f)
 
 
 class QAIssue(BaseModel):
     """Single QA issue."""
     check_name: str
-    severity: str  # low, medium, high
+    severity: str
     description: str
     suggestion: str
 
@@ -25,21 +32,43 @@ class QAReport(BaseModel):
     checks_passed: int
     issues: List[QAIssue] = Field(default_factory=list)
     auto_fixable: List[str] = Field(default_factory=list)
-    recommendation: str  # approve, fix_and_retry, reject
+    recommendation: str
 
 
 class QAAgent:
     """Agent for quality assurance of application documents."""
 
-    def __init__(self, profile_path: str = "data/candidate_profile.json"):
-        self.profile_path = profile_path
-        self.candidate_profile = self._load_profile()
+    def __init__(self, profile: Dict[str, Any] = None):
+        self.profile = profile or load_profile_yaml()
+        self.candidate_profile = self._build_candidate_profile()
         self.client = ClaudeClient(model="claude-haiku-4-5-20251001")
 
-    def _load_profile(self) -> Dict[str, Any]:
-        """Load candidate profile."""
-        with open(self.profile_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        qa_config = self.profile.get('qa', {})
+        self.never_claim = qa_config.get('never_claim', [])
+        self.banned_phrases = qa_config.get('banned_phrases', [])
+
+    def _build_candidate_profile(self) -> Dict[str, Any]:
+        """Build candidate profile dict from profile.yaml structure."""
+        candidate = self.profile.get('candidate', {})
+        skills = self.profile.get('skills', {})
+        projects = self.profile.get('projects', [])
+
+        all_skills = []
+        for category in skills.values():
+            if isinstance(category, list):
+                all_skills.extend(category)
+
+        return {
+            'name': candidate.get('name', ''),
+            'location': candidate.get('location', ''),
+            'education': [{
+                'degree': candidate.get('degree', ''),
+                'institution': candidate.get('university', ''),
+                'graduation_year': candidate.get('graduation', '')
+            }],
+            'skills': all_skills,
+            'projects': projects
+        }
 
     def run_qa(
         self,
