@@ -128,5 +128,65 @@
     "source": "Estimated (no data found)",
     "sample_size": 0,
     "cached_at": "2026-05-12T23:37:25.773045"
+  },
+  "ai_data_scientist_sydney_nsw": {
+    "role": "AI Data Scientist",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-13T07:57:19.477392"
+  },
+  "ai_engineer_-_microsoft_copilot_sydney_nsw": {
+    "role": "AI Engineer - Microsoft Copilot",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-15T07:58:37.046525"
+  },
+  "ai_engineer_intern_sydney_nsw": {
+    "role": "AI Engineer Intern",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-15T08:58:03.221725"
+  },
+  "ai_automation_engineer_sydney_nsw_/_remote": {
+    "role": "AI Automation Engineer",
+    "location": "Sydney NSW / Remote",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-15T08:59:39.401444"
+  },
+  "ai_evaluation_engineer_sydney_nsw": {
+    "role": "AI Evaluation Engineer",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-15T09:03:11.505422"
+  },
+  "ai_engineer_-_ai_innovation_sydney_nsw": {
+    "role": "AI Engineer - AI Innovation",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-15T09:06:43.258689"
   }
 }

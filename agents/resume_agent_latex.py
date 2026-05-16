@@ -91,8 +91,8 @@ class ResumeAgent:
         print(f"  [OK] Changelog: {changelog_file}", flush=True)
         print(f"  [OK] Diff: {diff_file}", flush=True)
 
-        # Try to compile PDF if pdflatex is available
-        pdf_file = self._try_compile_pdf(tex_file, output_path)
+        # Compile PDF — MiKTeX must be installed
+        pdf_file = self._try_compile_pdf(tex_file, output_path, job_hash)
 
         return {
             'tex': str(tex_file),
@@ -219,34 +219,60 @@ Return the complete modified .tex file, then "---CHANGELOG---", then explain cha
 
         return ''.join(diff)
 
-    def _try_compile_pdf(self, tex_file: Path, output_dir: Path) -> Path | None:
-        """Try to compile LaTeX to PDF if pdflatex is available."""
+    # MiKTeX per-user install location (added to subprocess env so the venv
+    # inherits it even when the system shell PATH differs from the user PATH)
+    MIKTEX_BIN = r"C:\Users\rjjos\AppData\Local\Programs\MiKTeX\miktex\bin\x64"
+
+    def _try_compile_pdf(self, tex_file: Path, output_dir: Path, job_hash: str = '') -> Path | None:
+        """Compile LaTeX to PDF using pdflatex. Logs stderr on failure."""
+        import os as _os
+        label = job_hash or tex_file.stem
+
+        # Build env with MiKTeX prepended so subprocess can find pdflatex
+        env = _os.environ.copy()
+        env['PATH'] = self.MIKTEX_BIN + _os.pathsep + env.get('PATH', '')
+
+        pdflatex_exe = _os.path.join(self.MIKTEX_BIN, 'pdflatex.exe')
         try:
-            result = subprocess.run(
-                ['pdflatex', '-interaction=nonstopmode',
+            proc = subprocess.run(
+                [pdflatex_exe, '-interaction=nonstopmode',
                  f'-output-directory={output_dir}',
                  str(tex_file)],
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=60,
+                env=env
             )
 
-            pdf_file = tex_file.with_suffix('.pdf')
+            pdf_file = output_dir / tex_file.with_suffix('.pdf').name
             if pdf_file.exists():
                 print(f"  [OK] PDF: {pdf_file}", flush=True)
                 return pdf_file
-            else:
-                print(f"  [INFO] pdflatex ran but no PDF generated", flush=True)
-                return None
+
+            print(f"  [ERROR] PDF compilation failed for {label}", flush=True)
+            # Print pdflatex error lines from stdout (pdflatex logs errors there)
+            if proc.stdout:
+                error_lines = [l for l in proc.stdout.splitlines()
+                               if l.startswith('!') or 'Error' in l or 'error' in l]
+                if error_lines:
+                    print("  [PDFLATEX ERRORS]:", flush=True)
+                    for line in error_lines[:15]:
+                        print(f"    {line}", flush=True)
+            # Print stderr if present
+            if proc.stderr and proc.stderr.strip():
+                print("  [PDFLATEX STDERR]:", flush=True)
+                for line in proc.stderr.strip().splitlines()[-20:]:
+                    print(f"    {line}", flush=True)
+            return None
 
         except FileNotFoundError:
-            print(f"  [INFO] pdflatex not found - open {tex_file} in Overleaf to compile", flush=True)
+            print(f"  [INFO] pdflatex not found — install MiKTeX or compile {tex_file.name} in Overleaf", flush=True)
             return None
         except subprocess.TimeoutExpired:
-            print(f"  [WARNING] PDF compilation timed out", flush=True)
+            print(f"  [ERROR] PDF compilation timed out for {label} (>60s)", flush=True)
             return None
         except Exception as e:
-            print(f"  [WARNING] PDF compilation failed: {e}", flush=True)
+            print(f"  [ERROR] PDF compilation failed for {label}: {e}", flush=True)
             return None
 
 

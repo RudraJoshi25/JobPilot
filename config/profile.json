@@ -1,0 +1,152 @@
+{
+  "name": "Rudra Joshi",
+  "first_name": "Rudra",
+  "last_name": "Joshi",
+  "email": "rudrajoshi.cs@gmail.com",
+  "phone": "+61 466988797",
+  "phone_digits": "0466988797",
+  "location": "Sydney, NSW, Australia",
+  "suburb": "Toongabbie",
+  "city": "Sydney",
+  "state": "NSW",
+  "postcode": "2146",
+  "country": "Australia",
+  "linkedin": "linkedin.com/in/rudrajoshi25/",
+  "linkedin_url": "https://www.linkedin.com/in/rudrajoshi25/",
+  "github": "github.com/RudraJoshi25",
+  "github_url": "https://github.com/RudraJoshi25",
+
+  "right_to_work": "Yes – Graduate Visa (Subclass 485), valid until 8 September 2028, full work rights, no sponsorship required ",
+  "right_to_work_short": "Graduate Visa",
+  "work_authorization": "Yes",
+  "requires_sponsorship": false,
+"visa_expiry": "2028-09-08",
+  "visa_type": "Graduate Visa Subclass 485",
+
+  "salary_expectation": "$80,000 - $120,000 AUD per year",
+  "salary_min": 80000,
+  "salary_max": 120000,
+  "salary_currency": "AUD",
+  "salary_note": "Graduate/entry-level benchmark for AI/ML roles in Sydney NSW",
+
+  "experience_level": "Graduate/Entry-level",
+  "years_experience": "0-1",
+  "seniority": "Graduate",
+
+  "education": [
+    {
+      "degree": "Master of Computer Science",
+      "degree_short": "MCS",
+      "institution": "University of Wollongong",
+      "location": "Wollongong, Australia",
+      "graduation_year": 2025,
+      "graduation_month": "September",
+      "status": "Graduated",
+      "gpa": null,
+      "coursework": ["Data Mining", "Machine Translation", "Algorithms for Data Science", "Intro to Optimization"]
+    },
+    {
+      "degree": "Bachelor of Technology in Computer Science & Engineering (Data Science Specialization)",
+      "degree_short": "BTech CS",
+      "institution": "Gujarat State Fertilizers and Chemicals University",
+      "location": "Vadodara, India",
+      "graduation_year": 2023,
+      "status": "Graduated",
+      "coursework": ["Data Structures & Algorithms", "Machine Learning for Intelligent Systems", "Deep Learning", "NLP"]
+    }
+  ],
+
+  "highest_education": "Master of Computer Science",
+  "highest_education_institution": "University of Wollongong",
+  "highest_education_year": 2025,
+
+  "work_experience": [
+    {
+      "company": "TSPL",
+      "role": "Junior Android Application Development Intern",
+      "location": "Vadodara, India",
+      "start": "Jan 2023",
+      "end": "Jun 2023",
+      "duration_months": 6,
+      "highlights": [
+        "Built an Android app end-to-end with backend REST APIs; integrated charts for analytics views",
+        "Delivered features across UI to API to DB with clean endpoint design and predictable payload contracts"
+      ],
+      "tech": ["Java", "Spring Boot", "MySQL"]
+    },
+    {
+      "company": "Gurukula, Tntra Engineering",
+      "role": "Multi Domain Intern",
+      "location": "Vadodara, India",
+      "start": "Sep 2022",
+      "end": "Dec 2022",
+      "duration_months": 4,
+      "highlights": [
+        "Completed multi-domain engineering training across web development, cloud, and cybersecurity"
+      ],
+      "tech": ["Web Development", "Cloud", "Cybersecurity"]
+    },
+    {
+      "company": "Gurukula, Tntra Engineering",
+      "role": "Full Stack Intern",
+      "location": "Vadodara, India",
+      "start": "Jun 2022",
+      "end": "Jul 2022",
+      "duration_months": 2,
+      "highlights": [
+        "Built and shipped web app modules in an industry workflow including tickets, reviews, and iterative delivery"
+      ],
+      "tech": ["Full Stack Web Development"]
+    }
+  ],
+
+  "total_experience_months": 12,
+  "total_experience_years": 1,
+
+  "skills": {
+    "programming_languages": ["Python", "SQL", "JavaScript", "TypeScript", "Java"],
+    "ml_ai": [
+      "Large Language Models (LLMs)",
+      "Retrieval-Augmented Generation (RAG)",
+      "Prompt Engineering",
+      "Embeddings",
+      "Vector Search",
+      "LangChain",
+      "LlamaIndex",
+      "scikit-learn",
+      "PyTorch",
+      "TensorFlow",
+      "Natural Language Processing"
+    ],
+    "cloud": ["Azure", "AWS", "GCP", "Databricks", "Snowflake"],
+    "frameworks": ["FastAPI", "Node.js", "Express", "Next.js", "React", "Spring Boot"],
+    "tools": ["Docker", "Git", "CI/CD", "REST APIs"]
+  },
+
+  "skills_summary": "Python, SQL, JavaScript, TypeScript, LLMs, RAG, Prompt Engineering, LangChain, PyTorch, FastAPI, Azure, AWS",
+
+  "target_roles": [
+    "AI Engineer",
+    "GenAI Engineer",
+    "ML Engineer",
+    "Applied AI Engineer",
+    "Machine Learning Engineer",
+    "Graduate AI Developer",
+    "Junior AI Engineer",
+    "LLM Engineer"
+  ],
+
+  "remote_preference": "Open to remote, hybrid, and on-site",
+  "willing_to_relocate": "Yes, open to relocation within Australia",
+  "notice_period": "Immediately available",
+  "start_date": "Immediately",
+
+  "references_available": "Yes, available on request",
+  "cover_letter_available": true,
+
+  "constraints": {
+    "no_fabrication": true,
+    "honest_representation": true,
+    "only_use_profile_data": true
+  }
+}

@@ -29,3 +29,18 @@ artifacts/screenshots/
 # OS files
 .DS_Store
 Thumbs.db
+.browser_profile/
+
+*.db
+
+artifacts/
+
+data/jobs_raw.json
+
+data/jobs_clean.json
+
+data/applied_jobs.json
+
+logs/
+
+.env

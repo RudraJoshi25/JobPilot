@@ -28,12 +28,13 @@ class MultiSourceAgent:
         self.profile = profile or load_profile()
         self.tier1_locations = self.profile.get('search', {}).get('locations', {}).get('tier1', ['Sydney', 'Remote'])
 
-    async def run(self, search_terms: List[str] = None, location: str = None) -> List[Dict[str, Any]]:
-        """Run all scrapers for all search terms and deduplicate results.
+    async def run(self, search_terms: List[str] = None, location: str = None, sources: List[str] = None) -> List[Dict[str, Any]]:
+        """Run scrapers for all search terms and deduplicate results.
 
         Args:
             search_terms: Optional override; defaults to scraper_keywords from profile.yaml
             location: Optional override; defaults to first tier1 location + country
+            sources: Optional list of source names to include (e.g. ["Seek"]). None = all sources.
         """
         if search_terms is None:
             search_terms = self.profile.get('search', {}).get('scraper_keywords', [])
@@ -43,9 +44,12 @@ class MultiSourceAgent:
             country = self.profile.get('search', {}).get('country', 'Australia')
             location = f"{tier1} {country}"
 
+        active_sources = sources or ["Seek", "Indeed", "GradConnection", "Adzuna"]
+
         print(f"Starting multi-source job scraping...", flush=True)
         print(f"Search terms: {search_terms}", flush=True)
         print(f"Location: {location}", flush=True)
+        print(f"Sources: {active_sources}", flush=True)
         print("-" * 80, flush=True)
 
         async with async_playwright() as p:
@@ -56,10 +60,14 @@ class MultiSourceAgent:
                 print(f"\nSearching for: '{search_term}'", flush=True)
                 print("-" * 80, flush=True)
 
-                await self._run_scraper("Seek", self.seek_scraper, context, search_term, location)
-                await self._run_scraper("Indeed", self.indeed_scraper, context, search_term, location)
-                await self._run_scraper("GradConnection", self.gradconnection_scraper, context, search_term, location)
-                await self._run_scraper("Adzuna", self.adzuna_scraper, context, search_term, location)
+                if "Seek" in active_sources:
+                    await self._run_scraper("Seek", self.seek_scraper, context, search_term, location)
+                if "Indeed" in active_sources:
+                    await self._run_scraper("Indeed", self.indeed_scraper, context, search_term, location)
+                if "GradConnection" in active_sources:
+                    await self._run_scraper("GradConnection", self.gradconnection_scraper, context, search_term, location)
+                if "Adzuna" in active_sources:
+                    await self._run_scraper("Adzuna", self.adzuna_scraper, context, search_term, location)
 
             await browser.close()
 
@@ -71,7 +79,7 @@ class MultiSourceAgent:
         self._save_results(unique_jobs)
 
         print("\n" + "=" * 80, flush=True)
-        print(f"SUMMARY: Found {len(unique_jobs)} unique jobs from {len(self.all_jobs)} total across 4 sources", flush=True)
+        print(f"SUMMARY: Found {len(unique_jobs)} unique jobs from {len(self.all_jobs)} total across {len(active_sources)} source(s)", flush=True)
         print("=" * 80, flush=True)
 
         return unique_jobs

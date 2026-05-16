@@ -4,7 +4,8 @@
       "Bash(mkdir -p core)",
       "Bash(touch core/__init__.py)",
       "PowerShell($start = Get-Date; python main.py --test; $end = Get-Date; $duration = $end - $start; Write-Host \"`n`n========== TIMING RESULTS ==========`nTotal execution time: $\\($duration.TotalSeconds\\) seconds`n====================================\")",
-      "PowerShell($start = Get-Date; python main.py --test; $end = Get-Date; $duration = $end - $start; Write-Host \"`n`n========== TIMING RESULTS ==========`nTotal execution time: $\\($duration.TotalSeconds\\) seconds`nTotal minutes: $\\($duration.TotalMinutes.ToString\\('F2'\\)\\) minutes`n====================================\")"
+      "PowerShell($start = Get-Date; python main.py --test; $end = Get-Date; $duration = $end - $start; Write-Host \"`n`n========== TIMING RESULTS ==========`nTotal execution time: $\\($duration.TotalSeconds\\) seconds`nTotal minutes: $\\($duration.TotalMinutes.ToString\\('F2'\\)\\) minutes`n====================================\")",
+      "PowerShell(npx ruflo@latest memory store -k \"jobpilot_project\" --value \"This project is JobPilot — a fully automated job application pipeline for Rudra Joshi. Location: C:\\\\Users\\\\rjjos\\\\job-agent. Python 3.11, FastAPI, Playwright persistent context at .browser_profile/. LLM: Claude Sonnet for reasoning, Haiku for simple tasks. pdflatex at C:\\\\Users\\\\rjjos\\\\AppData\\\\Local\\\\Programs\\\\MiKTeX\\\\miktex\\\\bin\\\\x64\\\\pdflatex.exe. Scrapes Seek, Indeed, Adzuna, GradConnection \\(~60-70 jobs/day\\). Scores jobs 0-100 — auto apply >=80, manual review 50-79, skip <50. Generates tailored LaTeX resume + actor-critic cover letter per job. Apply agent uses ReAct loop with Playwright to fill ATS forms. Currently upgrading: external ATS handling \\(Workday, Greenhouse, Lever\\), multi-step form navigation, confirmation detection.\")"
     ]
   }
 }

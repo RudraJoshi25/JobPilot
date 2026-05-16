@@ -57,6 +57,29 @@ async def main():
         help='Unattended run: auto-apply to QA-passed jobs with score >= 80, queue the rest for manual review'
     )
 
+    parser.add_argument(
+        '--apply-one',
+        action='store_true',
+        help='Run full pipeline but attempt exactly ONE application (highest-scoring job). Useful for end-to-end apply-agent testing.'
+    )
+
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Print every step in real time: URLs opened, fields discovered, AI mappings, fill/skip decisions, confirmation text. Works alongside any other flag.'
+    )
+
+    parser.add_argument(
+        '--test-apply',
+        action='store_true',
+        help=(
+            'Minimal end-to-end test optimised for low token usage: '
+            'Seek only, keyword "AI Engineer", 3 jobs max, top-1 job through documents + apply. '
+            'Forces verbose output and a human confirmation prompt before submit. '
+            'Does NOT write to the application cache so the same job can be retested.'
+        )
+    )
+
     # Layer 5: Strategic Agent
     parser.add_argument(
         '--strategy',
@@ -210,7 +233,10 @@ async def main():
             test_mode=args.test,
             docs_only=args.docs_only,
             apply_only=args.apply_only,
-            auto_mode=args.auto
+            auto_mode=args.auto,
+            apply_one=args.apply_one,
+            verbose=args.verbose,
+            test_apply=args.test_apply,
         )
 
         print("\n[SUCCESS] Pipeline execution completed successfully!")
