@@ -62,7 +62,7 @@ class SkillRegistry:
 
         # Search for company info
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
 
             result = {
                 'company': company_name,
@@ -439,7 +439,7 @@ class SkillRegistry:
 
         # Search for salary data
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
 
             query = f"{role} salary {location} 2026 site:glassdoor.com OR site:seek.com.au OR site:levels.fyi"
 

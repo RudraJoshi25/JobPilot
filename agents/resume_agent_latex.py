@@ -108,8 +108,9 @@ class ResumeAgent:
 
     def _modify_resume(self, base_tex: str, job: Dict[str, Any], match_report: Dict[str, Any]) -> tuple:
         """Modify LaTeX resume for specific job."""
-        prompt = self._build_modification_prompt(base_tex, job, match_report)
-        system_prompt = self._build_system_prompt()
+        job_title = job.get('title', 'this role')
+        prompt = self._build_modification_prompt(base_tex, job, match_report, job_title)
+        system_prompt = self._build_system_prompt(job_title)
 
         # Get modified resume
         response = self.client.generate(
@@ -134,40 +135,99 @@ class ResumeAgent:
 
         return modified_tex, changelog
 
-    def _build_system_prompt(self) -> str:
+    def _build_system_prompt(self, job_title: str) -> str:
         """Build system prompt for LaTeX editing."""
-        return """You are an expert LaTeX resume editor for AI/ML roles.
+        return f"""You are a professional resume writer tailoring a LaTeX resume for a real job applicant. Your output will be reviewed by human recruiters and hiring managers at top companies. Every change must look like a skilled human career coach made it — not an AI keyword optimizer.
 
-Your task is to modify an existing LaTeX resume to match a specific job posting.
+ABSOLUTE PROHIBITIONS — never do these:
 
-CRITICAL RULES:
-1. ONLY modify the content inside \\resumeItem{} tags (bullet points)
-2. ONLY modify the skills section content
-3. ONLY modify the summary/tagline line if present
-4. NEVER change LaTeX commands, packages, document structure, or formatting
-5. NEVER change section headers, dates, company names, job titles
-6. Preserve ALL LaTeX special characters: \\\\, \\%, \\$, \\&, etc.
-7. Preserve ALL line breaks and spacing exactly
-8. Return the COMPLETE modified .tex file
+1. NEVER keyword-stuff the skills section with field names like "Machine Learning", "Deep Learning", "Generative AI", "NLP" as if they are skills. List tools and frameworks only (PyTorch, scikit-learn, LangChain). Concepts are not skills.
+
+2. NEVER add \\textbf{{}} bold tags inside bullet point prose. Bold is ONLY allowed on: project names, company names, and Tech: lines. Never bold a keyword mid-sentence.
+
+3. NEVER append summary sentences to patents or publications. Citations stand alone.
+
+4. NEVER alter factual details to insert keywords. If the original said Java, it was Java. Never insert Python or any technology not actually used in that role.
+
+5. NEVER make project subtitles generic keyword phrases like "Generative AI Application with RAG & LLMs". Keep subtitles specific and technical.
+
+6. NEVER spell out acronyms already known in tech (LLM, NLP, RAG, API, REST).
+
+7. NEVER repeat the same concept in multiple forms on one line (LLMs and "Large Language Models" on the same line).
+
+8. NEVER add hollow filler phrases. Permanently banned:
+   - "applicable to [industry] use cases"
+   - "adaptable to industry verticals"
+   - "enabling rapid customization for specific use cases"
+   - "demonstrating [X] for automated workflows"
+   - "leveraging [tool] for [generic outcome]"
+
+9. NEVER use these verbs: Leveraged, Utilized, Facilitated, Demonstrated, Enabled, Showcased. Use instead: Built, Implemented, Designed, Reduced, Deployed, Shipped, Optimised, Engineered, Automated, Benchmarked.
+
+10. NEVER change \\vspace values, font size commands, the header block (name, phone, email), or add bullets that push a project past its current line count without removing an equivalent bullet.
+
+11. NEVER use em dashes (—) or double hyphens (--) as punctuation inside bullet points or anywhere in the resume body. These are a strong signal of AI-written text. Use a single hyphen (-), a comma, or restructure the sentence instead.
+   BAD:  "Built a RAG pipeline — applicable to enterprise search use cases"
+   BAD:  "Designed evaluation harness -- reduces retrieval regressions"
+   GOOD: "Built a RAG pipeline for enterprise-style semantic search"
+   GOOD: "Designed evaluation harness that reduces retrieval regressions"
+   Exception: LaTeX en-dash in date ranges (e.g. "Jan 2023 -- Dec 2023") is standard formatting — keep as-is.
+
+FACTUAL INTEGRITY — non-negotiable:
+- Never add a technology not in the base resume
+- Never change metrics, percentages, or numbers
+- Never change dates, company names, degree names
+- Never remove the "(actively upskilling)" qualifier from Azure
+- Never claim production experience for a PoC/project
+- If the JD requires a skill not in the base resume, do NOT add it silently — add a note in the changelog: "[MISSING SKILL] JD requires X — not added"
+
+WHAT GOOD TAILORING LOOKS LIKE:
+- Reorder skills within a section to front-load keywords from the JD
+- Swap synonyms to match JD language where candidate actually has the skill
+- Elevate the most relevant bullet to the top of a project section
+- Adjust project subtitle to emphasise the most relevant specific aspect
+- Ensure the exact role title '{job_title}' appears naturally somewhere in the resume — either in the subtitle or a project description — exactly once
+
+SKILLS SECTION RULES:
+- Each line: Category: tool1, tool2, framework3, technique4
+- Maximum ~12 items per line
+- No field names as skills ("Machine Learning" is not a skill — PyTorch is)
+- No duplicate concepts across categories
+
+BULLET POINT QUALITY CHECK (apply to every bullet before output):
+- Starts with a strong past-tense action verb
+- Contains a specific technical detail or measurable outcome
+- Could plausibly have been written by the candidate themselves
+- Does not contain any banned phrases or verbs
+
+SELF-CHECK before returning output — verify all of these:
+[ ] No inline \\textbf{{}} added inside bullet prose
+[ ] No appended sentences on patent/publication entries
+[ ] No factual changes (technologies, metrics, dates)
+[ ] No generic project subtitles
+[ ] No spelled-out acronyms that were already abbreviated
+[ ] No banned verbs or filler phrases
+[ ] Skills section contains tools/frameworks only, not field names
+[ ] Exact role title appears naturally exactly once
+[ ] Page length unchanged
+[ ] Changelog lists every change with line references
 
 OUTPUT FORMAT:
 [Complete modified LaTeX file]
 
 ---CHANGELOG---
 
-[Detailed list of what was changed and why]"""
+[Detailed list of every change made, with line references]"""
 
-    def _build_modification_prompt(self, base_tex: str, job: Dict[str, Any], match_report: Dict[str, Any]) -> str:
+    def _build_modification_prompt(self, base_tex: str, job: Dict[str, Any], match_report: Dict[str, Any], job_title: str) -> str:
         """Build prompt for resume modification."""
         required_skills = job.get('required_skills', [])
         matching_skills = match_report.get('matching_skills', [])
         missing_skills = match_report.get('missing_skills', [])
 
-        return f"""Edit this LaTeX resume to tailor it for a specific job.
+        return f"""Tailor this LaTeX resume for the following role.
 
-JOB DETAILS:
-Title: {job['title']}
-Company: {job['company']}
+TARGET ROLE: {job_title} at {job['company']}
 Required Skills: {', '.join(required_skills[:10])}
 
 MATCH ANALYSIS:
@@ -179,18 +239,17 @@ CURRENT LATEX RESUME:
 {base_tex}
 
 INSTRUCTIONS:
-1. Modify bullet points (\\resumeItem{{...}}) to emphasize matching skills
-2. Reword project bullets to include keywords from required skills naturally
-3. In the skills section, reorder or emphasize JD-matching skills
-4. If there's a summary line, update it to match the role focus
-5. Keep all changes subtle and professional
-6. DO NOT change any LaTeX commands or structure
-7. Preserve all special characters exactly (\\\\, \\%, \\$, etc.)
+1. Reorder or lightly reword bullet points to front-load skills the JD requires
+2. In the skills section, reorder items to emphasise JD-matching tools first
+3. Adjust project subtitles to highlight the most relevant technical aspect (specific, not generic)
+4. Ensure the exact role title "{job_title}" appears naturally exactly once — subtitle or a project description
+5. Follow all rules in the system prompt without exception
+6. Preserve all LaTeX commands, special characters, and spacing exactly
 
 Focus on these projects if they match the JD requirements:
 {self._format_projects()}
 
-Return the complete modified .tex file, then "---CHANGELOG---", then explain changes."""
+Return the complete modified .tex file, then "---CHANGELOG---", then list every change with line references."""
 
     def _format_projects(self) -> str:
         """Format projects from profile for prompt."""

@@ -188,5 +188,15 @@
     "source": "Estimated (no data found)",
     "sample_size": 0,
     "cached_at": "2026-05-15T09:06:43.258689"
+  },
+  "machine_learning_engineer_graduate_(trust_and_safety_engineering)_sydney_nsw": {
+    "role": "Machine Learning Engineer Graduate (Trust and Safety Engineering)",
+    "location": "Sydney NSW",
+    "min_salary": 80000,
+    "max_salary": 120000,
+    "median_salary": 100000,
+    "source": "Estimated (no data found)",
+    "sample_size": 0,
+    "cached_at": "2026-05-17T19:14:35.411256"
   }
 }

@@ -307,10 +307,20 @@ class ApplyAgent:
         # ── STEP 0: Navigate to job URL ───────────────────────────────────
         print(f"[NAVIGATE] Loading: {job_url[:80]}")
         try:
-            await page.goto(job_url, wait_until="networkidle", timeout=30000)
+            resp = await page.goto(job_url, wait_until="networkidle", timeout=30000)
+            if resp and resp.status in (404, 403, 500):
+                result['status'] = 'job_expired'
+                result['manual_reason'] = f'HTTP {resp.status}: {job_url}'
+                print(f"[SKIP] HTTP {resp.status} — job page unavailable")
+                return
         except Exception:
             try:
-                await page.goto(job_url, wait_until="domcontentloaded", timeout=30000)
+                resp = await page.goto(job_url, wait_until="domcontentloaded", timeout=30000)
+                if resp and resp.status in (404, 403, 500):
+                    result['status'] = 'job_expired'
+                    result['manual_reason'] = f'HTTP {resp.status}: {job_url}'
+                    print(f"[SKIP] HTTP {resp.status} — job page unavailable")
+                    return
             except Exception as e:
                 result['status'] = 'manual_queue'
                 result['manual_reason'] = f'[MANUAL] Page load timeout: {e}'
@@ -365,6 +375,8 @@ class ApplyAgent:
 
         # ── ReAct loop ────────────────────────────────────────────────────
         resume_upload_done = False
+        _prev_url = ""
+        _zero_progress_streak = 0
 
         for iteration in range(self.MAX_ITERATIONS):
             step_num = iteration + 1
@@ -417,9 +429,28 @@ class ApplyAgent:
             await self._execute_actions(page, action_plan.get('actions', []), resume_path, cover_letter_text, result)
 
             # Fill summary log
-            print(f"[FILL SUMMARY] Filled: {len(result['fields_filled'])} | Skipped: {len(result['fields_skipped'])} | Sensitive: {len(result.get('sensitive_fields_skipped', []))}")
+            filled_this_step = len(result['fields_filled'])
+            print(f"[FILL SUMMARY] Filled: {filled_this_step} | Skipped: {len(result['fields_skipped'])} | Sensitive: {len(result.get('sensitive_fields_skipped', []))}")
 
             result['steps_completed'] = step_num
+
+            # Stuck-loop detection: 3+ consecutive zero-progress iterations on same URL → manual queue
+            current_url = page.url
+            only_scroll_actions = all(
+                a.get('action') in ('scroll', 'wait', 'skip')
+                for a in action_plan.get('actions', [{'action': 'scroll'}])
+            )
+            if current_url == _prev_url and only_scroll_actions:
+                _zero_progress_streak += 1
+            else:
+                _zero_progress_streak = 0
+            _prev_url = current_url
+
+            if _zero_progress_streak >= 3:
+                result['status'] = 'manual_queue'
+                result['manual_reason'] = f'[MANUAL] Stuck on login-gated or inaccessible portal: {current_url[:80]}'
+                print(f"[MANUAL] Stuck loop detected ({_zero_progress_streak} iterations, same URL, only scroll) — manual queue")
+                return
 
             # Step 0: Handle any new tab opened during action execution
             page = await self._get_active_page(ctx, page)
@@ -428,7 +459,7 @@ class ApplyAgent:
             if action_plan.get('is_final_step', False):
 
                 # Step 6: Success gate
-                if not await self._check_success_gate(page, result):
+                if not await self._check_success_gate(page, result, job, resume_path, cover_letter_text):
                     return
 
                 # Pre-submit screenshot
@@ -587,7 +618,7 @@ class ApplyAgent:
             "sign in to apply", "log in to apply", "create an account to apply",
             "please login", "register to apply", "sign up to continue",
         ]
-        LOGIN_URL_TOKENS = ('/login', '/signin', '/register', '/sign-up', '/signup')
+        LOGIN_URL_TOKENS = ('/login', '/signin', '/register', '/sign-up', '/signup', 'elmotalent.com.au')
         if any(p in body_lower for p in LOGIN_PHRASES) or \
            any(t in url for t in LOGIN_URL_TOKENS):
             result['status'] = 'manual_queue'
@@ -783,7 +814,8 @@ class ApplyAgent:
         page_state: Dict[str, Any],
         job: Dict[str, Any],
         cover_letter_text: str,
-        result: Dict[str, Any]
+        result: Dict[str, Any],
+        extra_context: str = ""
     ) -> Dict[str, Any]:
         """Send page state to Claude Sonnet. Returns structured action plan."""
         profile_json = json.dumps(self.candidate_profile, indent=2)
@@ -865,6 +897,9 @@ EDUCATION: Master of Computer Science, University of Wollongong, September 2025.
 OPEN TEXT QUESTIONS: Draw from work_experience, skills, and cover letter. 2-3 sentences max. Never invent.
 
 If this page shows only a job description with no form fields, set is_final_step=false, after_actions_click="" and explain in step_description that we need to find and click Apply."""
+
+        if extra_context:
+            user += f"\n\n{extra_context}"
 
         try:
             response = self._ai_client.messages.create(
@@ -1041,6 +1076,7 @@ If this page shows only a job description with no form fields, set is_final_step
                 continue
 
             if atype == 'select':
+                selected_value = value
                 try:
                     try:
                         await page.select_option(sel, label=value)
@@ -1048,7 +1084,6 @@ If this page shows only a job description with no form fields, set is_final_step
                         try:
                             await page.select_option(sel, value=value)
                         except Exception:
-                            # Partial text match
                             opts = await page.evaluate(
                                 "([s]) => Array.from(document.querySelector(s)?.options || []).map(o => ({v: o.value, t: o.text}))",
                                 [sel]
@@ -1057,9 +1092,23 @@ If this page shows only a job description with no form fields, set is_final_step
                             if match:
                                 await page.select_option(sel, value=match['v'])
                             else:
-                                raise Exception(f"No match for '{value}'")
-                    result['fields_filled'].append(f"{label}: {value}")
-                    print(f"  [SELECT] {label}: {value}")
+                                # Fallback: first non-empty, non-placeholder option
+                                first_nonempty = next(
+                                    (o for o in opts if o['t'].strip() and
+                                     not any(p in o['t'].lower() for p in ('select', 'choose', 'please', '--'))),
+                                    None
+                                )
+                                if first_nonempty:
+                                    await page.select_option(sel, value=first_nonempty['v'])
+                                    selected_value = f"{first_nonempty['t']} (fallback)"
+                                    print(f"  [SELECT FALLBACK] {label}: no match for '{value}', using '{first_nonempty['t']}'")
+                                    result.setdefault('concerns', []).append(
+                                        f"{label}: fallback to '{first_nonempty['t']}' (wanted '{value}')"
+                                    )
+                                else:
+                                    raise Exception(f"No match or fallback for '{value}'")
+                    result['fields_filled'].append(f"{label}: {selected_value}")
+                    print(f"  [SELECT] {label}: {selected_value}")
                 except Exception as e:
                     print(f"  [WARN] Select failed ({label}): {e}")
                     result['fields_skipped'].append(f"{label}: select failed ({str(e)[:60]})")
@@ -1126,8 +1175,15 @@ If this page shows only a job description with no form fields, set is_final_step
     #  Step 6 — Success Gate                                               #
     # ------------------------------------------------------------------ #
 
-    async def _check_success_gate(self, page: Page, result: Dict[str, Any]) -> bool:
-        """Verify minimum conditions before submitting. Returns True if OK."""
+    async def _check_success_gate(
+        self,
+        page: Page,
+        result: Dict[str, Any],
+        job: Dict[str, Any] = None,
+        resume_path: str = "",
+        cover_letter_text: str = ""
+    ) -> bool:
+        """Verify minimum fill conditions and run validation error correction loop (max 2 attempts)."""
         n_filled = len(result.get('fields_filled', []))
 
         if n_filled < 3:
@@ -1142,20 +1198,50 @@ If this page shows only a job description with no form fields, set is_final_step
             print("[WARN] Resume not uploaded — proceeding but noting concern")
             result.setdefault('concerns', []).append('resume_not_uploaded')
 
-        # Check for visible validation errors
+        error_text = await self._get_validation_errors(page)
+        if error_text:
+            print(f"[WARN] Validation errors detected: {error_text[:200]}")
+            result.setdefault('concerns', []).append(f'validation_errors: {error_text[:100]}')
+
+            if job is not None:
+                for attempt in range(2):
+                    print(f"[CORRECTION {attempt + 1}/2] Asking Claude to fix validation errors...")
+                    page_state = await self._extract_page_state(page)
+                    extra = (
+                        f"VALIDATION ERRORS ON PAGE: {error_text}\n"
+                        f"Return ONLY actions that correct these specific errors."
+                    )
+                    correction_plan = await self._ai_analyze_page(
+                        page_state, job, cover_letter_text, result, extra_context=extra
+                    )
+                    result['api_calls_made'] = result.get('api_calls_made', 0) + 1
+                    await self._execute_actions(
+                        page, correction_plan.get('actions', []), resume_path, cover_letter_text, result
+                    )
+                    error_text = await self._get_validation_errors(page)
+                    if not error_text:
+                        print(f"[CORRECTION] Errors cleared after attempt {attempt + 1}")
+                        break
+                else:
+                    ss = await self._screenshot(page, result.get('job_hash', 'unknown'), "validation_failed")
+                    result['screenshots'].append(ss)
+                    result['status'] = 'manual_queue'
+                    result['manual_reason'] = f'validation_errors_uncorrectable: {error_text[:100]}'
+                    print(f"[GATE FAIL] Validation errors persist after 2 correction attempts")
+                    return False
+
+        return True
+
+    async def _get_validation_errors(self, page: Page) -> str:
+        """Extract visible validation error text from the page."""
         try:
-            error_text = await page.evaluate("""() => {
+            return await page.evaluate("""() => {
                 const sels = '[class*="error"]:not([class*="no-error"]), [class*="invalid"], [aria-invalid="true"], .field-error, .form-error';
                 return Array.from(document.querySelectorAll(sels))
                     .map(el => el.innerText.trim()).filter(t => t.length > 0).slice(0, 5).join(' | ');
             }""")
-            if error_text:
-                print(f"[WARN] Validation errors: {error_text[:200]}")
-                result.setdefault('concerns', []).append(f'validation_errors: {error_text[:100]}')
         except Exception:
-            pass
-
-        return True
+            return ""
 
     # ------------------------------------------------------------------ #
     #  Step 7 — Human Approval                                             #
